@@ -1,0 +1,14 @@
+{
+    "name": "@patchbay/cli",
+    "version": "0.1.0",
+    "bin": {
+        "patchbay": "./dist/index.js"
+    },
+    "scripts": {
+        "build": "tsc"
+    },
+    "dependencies": {
+        "@patchbay/core": "*",
+        "commander": "^12.0.0"
+    }
+}
