@@ -2,7 +2,7 @@
 
 A lightweight control plane for AI-assisted software development.
 
-> Ein zentrales Dashboard, das bestehende Tools wie Cursor, Claude Code, Codex, Bash und HTTP-Runner über CLI oder standardisierte Adapter als koordinierte Worker steuert.
+> A central dashboard that coordinates existing tools like Cursor, Claude Code, Codex, Bash, and HTTP runners as managed workers via CLI or standardized adapters.
 
 ## What is Patchbay?
 
