@@ -26,6 +26,7 @@ jobs:
           npm run build --workspace=packages/runners/bash
           npm run build --workspace=packages/runners/http
           npm run build --workspace=packages/runners/cursor
+          npm run build --workspace=packages/runners/claude-code
 
       - name: Build cli and dashboard
         run: |

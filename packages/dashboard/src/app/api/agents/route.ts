@@ -34,6 +34,7 @@ export async function GET() {
             { id: 'bash', role: 'Shell Command Runner', toolType: 'bash' },
             { id: 'http', role: 'HTTP Request Runner', toolType: 'http' },
             { id: 'cursor', role: 'Cursor (file-based)', toolType: 'cursor' },
+            { id: 'claude-code', role: 'Claude Code (CLI)', toolType: 'claude-code' },
         ];
 
         // Merge: use agent profiles if present, otherwise fall back to built-in
