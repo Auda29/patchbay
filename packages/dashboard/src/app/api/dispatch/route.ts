@@ -26,7 +26,8 @@ export async function POST(request: Request) {
         // We await it here directly for simplicity, but long-running tasks will block the HTTP response.
         const run = await orchestrator.dispatchTask(taskId, runnerId);
         return NextResponse.json(run);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : 'Internal error';
+        return NextResponse.json({ error: msg }, { status: 500 });
     }
 }

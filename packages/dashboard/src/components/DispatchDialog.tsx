@@ -46,8 +46,8 @@ export function DispatchDialog({ open, onClose, taskId, taskTitle, onDispatched 
             }
             onDispatched();
             onClose();
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Dispatch failed');
         } finally {
             setLoading(false);
         }

@@ -12,11 +12,10 @@ export default function DecisionsLog() {
     const [showNewDecision, setShowNewDecision] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
-    if (isLoading) return <div className="p-8 text-surface-400">Loading decisions...</div>;
-    if (error) return <div className="p-8 text-red-400">Error connecting to backend</div>;
-
-    const decisions: Decision[] = data?.decisions || [];
-    decisions.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    const decisions: Decision[] = useMemo(() => {
+        const list: Decision[] = data?.decisions || [];
+        return [...list].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    }, [data]);
 
     const filteredDecisions = useMemo(() => {
         if (!searchQuery.trim()) return decisions;
@@ -28,6 +27,9 @@ export default function DecisionsLog() {
             d.proposedBy?.toLowerCase().includes(q)
         );
     }, [decisions, searchQuery]);
+
+    if (isLoading) return <div className="p-8 text-surface-400">Loading decisions...</div>;
+    if (error) return <div className="p-8 text-red-400">Error connecting to backend</div>;
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500 h-full flex flex-col">

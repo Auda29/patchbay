@@ -15,8 +15,9 @@ export async function POST(request: Request) {
 
         const task = store.createTask(title, goal || '', affectedFiles);
         return NextResponse.json(task, { status: 201 });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : 'Internal error';
+        return NextResponse.json({ error: msg }, { status: 500 });
     }
 }
 
@@ -45,7 +46,8 @@ export async function PATCH(request: Request) {
         task.status = status;
         store.saveTask(task);
         return NextResponse.json(task);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : 'Internal error';
+        return NextResponse.json({ error: msg }, { status: 500 });
     }
 }

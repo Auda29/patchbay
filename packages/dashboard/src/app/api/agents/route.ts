@@ -43,7 +43,8 @@ export async function GET() {
         }
 
         return NextResponse.json({ agents });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : 'Internal error';
+        return NextResponse.json({ error: msg }, { status: 500 });
     }
 }

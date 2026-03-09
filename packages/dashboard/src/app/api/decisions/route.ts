@@ -15,7 +15,8 @@ export async function POST(request: Request) {
 
         const decision = store.createDecision(title, rationale, proposedBy);
         return NextResponse.json(decision, { status: 201 });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : 'Internal error';
+        return NextResponse.json({ error: msg }, { status: 500 });
     }
 }

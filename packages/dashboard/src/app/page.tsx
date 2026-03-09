@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 import useSWR from 'swr';
 import { Project, Task, Run } from '@patchbay/core';
 import { Activity, GitMerge, FileCode2, CheckCircle2, Clock } from 'lucide-react';
@@ -131,7 +132,15 @@ export default function DashboardHome() {
   );
 }
 
-function StatCard({ title, value, icon: Icon, trend, color }: any) {
+interface StatCardProps {
+  title: string;
+  value: number | string;
+  icon: React.ComponentType<{ className?: string }>;
+  trend?: string;
+  color?: string;
+}
+
+function StatCard({ title, value, icon: Icon, trend, color }: StatCardProps) {
   return (
     <div className="glass-card rounded-xl p-6 border border-surface-900/50 relative overflow-hidden group hover:border-surface-700 transition-colors">
       <div className="flex justify-between items-start mb-4">
