@@ -84,4 +84,104 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    animation: fadeIn 150ms ease-out;
+  }
+
+  .modal-panel {
+    background: linear-gradient(145deg, rgba(23, 23, 23, 0.95) 0%, rgba(10, 10, 10, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.03);
+    width: 100%;
+    max-width: 32rem;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 200ms ease-out;
+  }
+
+  /* Form elements */
+  .input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--color-surface-200);
+    background: var(--color-surface-950);
+    border: 1px solid var(--color-surface-800);
+    border-radius: 0.5rem;
+    outline: none;
+    transition: border-color 150ms, box-shadow 150ms;
+  }
+  .input:focus {
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 2px rgba(92, 129, 163, 0.2);
+  }
+  .input::placeholder { color: var(--color-surface-600); }
+
+  .textarea {
+    width: 100%;
+    min-height: 5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--color-surface-200);
+    background: var(--color-surface-950);
+    border: 1px solid var(--color-surface-800);
+    border-radius: 0.5rem;
+    outline: none;
+    resize: vertical;
+    transition: border-color 150ms, box-shadow 150ms;
+  }
+  .textarea:focus {
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 2px rgba(92, 129, 163, 0.2);
+  }
+  .textarea::placeholder { color: var(--color-surface-600); }
+
+  .select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--color-surface-200);
+    background: var(--color-surface-950);
+    border: 1px solid var(--color-surface-800);
+    border-radius: 0.5rem;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 150ms, box-shadow 150ms;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23a3a3a3' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 6l3.5 4 3.5-4z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    padding-right: 2rem;
+  }
+  .select:focus {
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 2px rgba(92, 129, 163, 0.2);
+  }
+
+  /* Diff viewer */
+  .diff-add { background: rgba(34, 197, 94, 0.12); color: #86efac; }
+  .diff-del { background: rgba(239, 68, 68, 0.12); color: #fca5a5; }
+  .diff-ctx { color: var(--color-surface-500); }
+  .diff-hunk { color: var(--color-brand-400); font-style: italic; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }

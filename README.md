@@ -24,10 +24,8 @@ Patchbay is **not** a new IDE or coding agent. It's a **command center** that or
 
 Patchbay works standalone with any editor, but has first-class integration with [Wintermute](https://github.com/Auda29/wntrmte) — a minimalist VS Code distribution with a built-in Patchbay client extension. See [VISION.md](../VISION.md) for the shared architecture.
 
-## Status
-
-Active development. Phases 1 (Schema & Data Model), Phase 2 (Orchestrator Core) and the first Batch of Runner Adapters are completed. Currently working on Phase 3 (Dashboard UI).
-See [PLAN.md](PLAN.md) for the roadmap.
+Active development. Phases 1 (Schema & Data Model), Phase 2 (Orchestrator Core), Phase 3 (Dashboard UI) and the first batch of Runner Adapters are completed. Currently refining the integration and starting Phase 5 (wntrmte-Integration).
+See [PLAN.md](PLAN.md) for the detailed roadmap.
 
 ## License
 

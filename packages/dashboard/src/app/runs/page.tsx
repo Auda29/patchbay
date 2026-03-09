@@ -1,7 +1,7 @@
 'use client';
 import useSWR from 'swr';
 import { Run } from '@patchbay/core';
-import { TerminalSquare, Clock, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { TerminalSquare, Clock, CheckCircle2, XCircle, AlertCircle, FileCode2, AlertTriangle, Lightbulb } from 'lucide-react';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -82,6 +82,52 @@ export default function RunsViewer() {
                                                 <div key={i} className="mb-2 whitespace-pre-wrap">{log}</div>
                                             ))}
                                         </div>
+                                    </div>
+                                )}
+
+                                {/* Changed Files */}
+                                {run.diffRef && (
+                                    <div>
+                                        <h4 className="text-xs font-medium text-surface-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <FileCode2 className="w-3.5 h-3.5" />
+                                            Diff Reference
+                                        </h4>
+                                        <p className="text-xs font-mono text-brand-400 bg-brand-950/30 border border-brand-900/50 rounded-md px-3 py-2">{run.diffRef}</p>
+                                    </div>
+                                )}
+
+                                {/* Blockers */}
+                                {run.blockers && run.blockers.length > 0 && (
+                                    <div>
+                                        <h4 className="text-xs font-medium text-red-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <AlertTriangle className="w-3.5 h-3.5" />
+                                            Blockers
+                                        </h4>
+                                        <ul className="space-y-1.5">
+                                            {run.blockers.map((b, i) => (
+                                                <li key={i} className="text-sm text-red-300/80 bg-red-950/20 border border-red-900/30 rounded-md px-3 py-2">
+                                                    {b}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {/* Suggested Next Steps */}
+                                {run.suggestedNextSteps && run.suggestedNextSteps.length > 0 && (
+                                    <div>
+                                        <h4 className="text-xs font-medium text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <Lightbulb className="w-3.5 h-3.5" />
+                                            Suggested Next Steps
+                                        </h4>
+                                        <ul className="space-y-1.5">
+                                            {run.suggestedNextSteps.map((step, i) => (
+                                                <li key={i} className="text-sm text-blue-300/80 bg-blue-950/20 border border-blue-900/30 rounded-md px-3 py-2 flex gap-2">
+                                                    <span className="text-blue-500 flex-shrink-0">→</span>
+                                                    {step}
+                                                </li>
+                                            ))}
+                                        </ul>
                                     </div>
                                 )}
                             </div>

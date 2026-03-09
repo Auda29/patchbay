@@ -176,7 +176,7 @@ interface Runner {
 
 ---
 
-## Phase 3: Dashboard (Web-UI)
+## Phase 3: Dashboard (Web-UI) — DONE
 
 **Ziel:** Zentrales Web-Dashboard als Control Panel + Dispatch + Review Station.
 
@@ -332,12 +332,13 @@ Ablauf: Builder liefert Ergebnis → Reviewer kommentiert → Mensch bestätigt 
 - [x] Orchestrator: Task-State + Runner-Dispatch
 - [x] Run-Logs werden korrekt geschrieben
 
-### Phase 3: Dashboard (Web-UI) — TODO
-- [ ] Projekt-Übersicht
-- [ ] Task-Board (Kanban-Stil)
-- [ ] Run-Viewer mit Logs
-- [ ] Diff/Artifact-Viewer
-- [ ] Decision-Log
+### Phase 3: Dashboard (Web-UI) — DONE
+- [x] Projekt-Übersicht
+- [x] Task-Board (Kanban-Stil)
+- [x] Run-Viewer mit Logs
+- [x] Diff/Artifact-Viewer
+- [x] Decision-Log
+- [x] Interaktive Aktionen (Task/Decision anlegen, Dispatch starten)
 
 ### Phase 4: Runner-Adapter — IN PROGRESS
 - [x] Bash Runner
