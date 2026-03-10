@@ -6,7 +6,7 @@ Patchbay is a lightweight control plane for AI-assisted software development. It
 
 ## Companion: Wintermute
 
-Wintermute (`wntrmte`) is a minimalist VS Code distribution and the native, first-class client for Patchbay. Its Phase 3 extension is designed as a Patchbay client from day one.
+Wintermute (`wntrmte`) is a minimalist VS Code distribution and the native, first-class client for Patchbay. Its extension is designed as a Patchbay client from day one.
 
 - wntrmte repo: `../wntrmte/`
 - Shared vision: `../VISION.md`
@@ -16,17 +16,22 @@ Wintermute (`wntrmte`) is a minimalist VS Code distribution and the native, firs
 
 Patchbay **owns** the orchestration logic and the `.project-agents/` schema. The wntrmte extension (`../wntrmte/extensions/wntrmte-workflow/`) is a consumer of that schema — not a competing orchestrator.
 
-## Project structure (planned)
+## Project structure
 
 ```
 patchbay/
-├── schema/           # .project-agents/ JSON Schemas (Phase 1)
+├── schema/           # .project-agents/ JSON Schemas
 ├── packages/
-│   ├── core/         # Orchestrator, Store, Runner interface
-│   ├── cli/          # patchbay init, task, run, status
-│   ├── dashboard/    # Web dashboard
-│   └── runners/      # Bash, HTTP, Cursor, Claude Code adapters
-├── archive/          # Historical docs (brainstorming, etc.)
+│   ├── core/         # Orchestrator, Store (ajv-validated), Runner interface, Types
+│   ├── cli/          # patchbay init, task create/list/status, run, status
+│   ├── dashboard/    # Next.js + Tailwind + SWR dashboard
+│   │   └── src/app/api/  # API routes: state, dispatch, artifacts, tasks, runs, agents, events (SSE)
+│   └── runners/
+│       ├── bash/         # Shell command execution
+│       ├── http/         # GET URL fetch
+│       ├── cursor/       # File-based handoff (Stage 1)
+│       ├── cursor-cli/   # cursor agent -p wrapper
+│       └── claude-code/  # claude -p wrapper
 ├── PLAN.md           # Implementation roadmap
 └── README.md
 ```
@@ -40,8 +45,8 @@ patchbay/
 
 ## Data model
 
-Core objects: Project, Task, Run, Decision, Artifact, Agent/Runner Profile. All stored in `.project-agents/` as YAML/JSON/Markdown files.
+Core objects: Project, Task, Run, Decision, Artifact, Agent/Runner Profile. All stored in `.project-agents/` as YAML/JSON/Markdown files. Validated via ajv against JSON Schemas in `packages/core/schema/`.
 
 ## Current status
 
-Early development. Schema definition (Phase 1) is the next milestone. See `PLAN.md` for the full roadmap.
+All 5 phases complete: Schema, Orchestrator, Dashboard (Next.js + SWR + SSE), Runner-Adapters (bash, http, cursor, cursor-cli, claude-code), and wntrmte integration. See `PLAN.md` for details.
