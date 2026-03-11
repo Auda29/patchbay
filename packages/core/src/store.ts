@@ -79,6 +79,16 @@ export class Store {
         return project;
     }
 
+    saveProject(project: Project) {
+        if (!this.validateProject(project)) {
+            console.error('Project schema validation errors:', this.ajv.errorsText(this.validateProject.errors));
+            throw new Error('project.yml fails schema validation');
+        }
+
+        const projectYaml = yaml.stringify(project);
+        fs.writeFileSync(path.join(this.baseDir, 'project.yml'), projectYaml);
+    }
+
     listTasks(): Task[] {
         const tasksDir = path.join(this.baseDir, 'tasks');
         if (!fs.existsSync(tasksDir)) return [];

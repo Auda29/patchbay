@@ -2,12 +2,14 @@
 import React from 'react';
 import useSWR from 'swr';
 import { Project, Task, Run } from '@patchbay/core';
-import { Activity, GitMerge, FileCode2, CheckCircle2, Clock } from 'lucide-react';
+import { Activity, GitMerge, FileCode2, CheckCircle2, Clock, Pencil } from 'lucide-react';
+import { EditProjectModal } from '@/components/EditProjectModal';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function DashboardHome() {
-  const { data, error, isLoading } = useSWR('/api/state', fetcher, { refreshInterval: 2000 });
+  const { data, error, isLoading, mutate } = useSWR('/api/state', fetcher, { refreshInterval: 2000 });
+  const [showEditProject, setShowEditProject] = React.useState(false);
 
   if (isLoading) return <div className="p-8 text-surface-400">Loading live data...</div>;
   if (error) return <div className="p-8 text-red-400">Error connecting to Patchbay backend</div>;
@@ -65,10 +67,20 @@ export default function DashboardHome() {
         <div className="lg:col-span-2 space-y-6">
           <section className="glass-card rounded-xl p-6 border border-surface-900/50 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl -mr-10 -mt-10 transition-all duration-500 group-hover:bg-brand-500/20" />
-            <h2 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
-              <FileCode2 className="w-5 h-5 text-brand-400" />
-              Project Goal
-            </h2>
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <h2 className="text-lg font-medium text-white flex items-center gap-2">
+                <FileCode2 className="w-5 h-5 text-brand-400" />
+                Project Goal
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowEditProject(true)}
+                className="inline-flex items-center gap-2 rounded-md border border-surface-800 bg-surface-950/60 px-3 py-1.5 text-xs font-medium text-surface-300 transition-colors hover:border-surface-700 hover:text-white"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                Edit
+              </button>
+            </div>
             <p className="text-surface-300 leading-relaxed font-light">
               {projectOptions?.goal || 'No goal defined.'}
             </p>
@@ -114,7 +126,17 @@ export default function DashboardHome() {
         {/* Sidebar / Rules */}
         <div className="space-y-6">
           <section className="glass rounded-xl p-6 border border-surface-900/50">
-            <h2 className="text-lg font-medium text-white mb-4">Project Rules</h2>
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <h2 className="text-lg font-medium text-white">Project Rules</h2>
+              <button
+                type="button"
+                onClick={() => setShowEditProject(true)}
+                className="inline-flex items-center gap-2 rounded-md border border-surface-800 bg-surface-950/60 px-3 py-1.5 text-xs font-medium text-surface-300 transition-colors hover:border-surface-700 hover:text-white"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                Edit
+              </button>
+            </div>
             <ul className="space-y-3">
               {projectOptions?.rules?.length ? projectOptions.rules.map((rule, idx) => (
                 <li key={idx} className="text-sm text-surface-300 flex gap-3">
@@ -128,6 +150,13 @@ export default function DashboardHome() {
           </section>
         </div>
       </div>
+
+      <EditProjectModal
+        open={showEditProject}
+        onClose={() => setShowEditProject(false)}
+        onSaved={() => mutate()}
+        project={projectOptions}
+      />
     </div>
   );
 }

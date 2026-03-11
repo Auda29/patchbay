@@ -69,7 +69,7 @@ export default function TasksBoard() {
 
                             <div className="flex-1 space-y-3">
                                 {colTasks.map(task => (
-                                    <div key={task.id} className="glass-card rounded-lg p-4 border border-surface-800/50 hover:border-surface-600 transition-colors group relative overflow-hidden">
+                                    <div key={task.id} className="glass-card rounded-lg p-4 border border-surface-800/50 hover:border-surface-600 transition-colors group relative">
                                         <div className="absolute top-0 left-0 w-1 h-full bg-brand-500/0 group-hover:bg-brand-500/50 transition-colors" />
                                         <div className="flex justify-between items-start mb-2">
                                             <span className="text-xs font-mono text-surface-400 bg-surface-900/50 px-1.5 py-0.5 rounded">

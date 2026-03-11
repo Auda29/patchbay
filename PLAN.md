@@ -375,6 +375,11 @@ Ablauf: Builder liefert Ergebnis → Reviewer kommentiert → Mensch bestätigt 
 - [x] Diff/Artifact-Viewer
 - [x] Decision-Log
 - [x] Interaktive Aktionen (Task/Decision anlegen, Dispatch starten)
+- [x] Dashboard-Polish aus Wintermute-Embedding-Tests
+  - Next.js Dev-Indicator standardmäßig auf `bottom-right`
+  - Task-Status-Dropdown nicht mehr durch Card-Overflow abgeschnitten
+  - Dispatch-Dialog zeigt neben Kurzfehler auch `hint` + aufklappbare technische Details
+  - Projektdaten (`goal`, `rules`, `techStack`) direkt im Dashboard editierbar
 
 ### Phase 4: Runner-Adapter — DONE
 - [x] Bash Runner
@@ -455,6 +460,10 @@ packages/server/
 - [~] Runner-Registrierung aus CLI und Dashboard deduplizieren
 - [ ] Wiederverwendbare API-Handler als framework-agnostische Funktionen extrahieren
 - [ ] Einheitliches Fehler-Mapping (`not initialized`, Validation-Fehler, `not found`, interne Fehler)
+
+**Aktueller Zusatzbefund aus Dashboard-/wntrmte-Integration:**
+- Dashboard-API-Routen liefern inzwischen bei Dispatch-Fehlern strukturiertere Antworten (`error`, optional `hint`, `details`)
+- Diese Fehlerform ist nützlich für Web-UI und Wintermute-Einbettung und sollte bei der späteren Handler-Extraktion beibehalten bzw. vereinheitlicht werden
 
 **Schritte:**
 - [x] Package `packages/server/` scaffolden

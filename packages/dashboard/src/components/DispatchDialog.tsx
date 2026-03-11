@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Modal } from './Modal';
-import { Loader2, Play } from 'lucide-react';
+import { ChevronDown, ChevronUp, Loader2, Play } from 'lucide-react';
 
 interface DispatchDialogProps {
     open: boolean;
@@ -16,9 +16,16 @@ export function DispatchDialog({ open, onClose, taskId, taskTitle, onDispatched 
     const [agents, setAgents] = useState<{ id: string; role: string; toolType: string }[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [errorHint, setErrorHint] = useState('');
+    const [errorDetails, setErrorDetails] = useState('');
+    const [showErrorDetails, setShowErrorDetails] = useState(false);
 
     useEffect(() => {
         if (open) {
+            setError('');
+            setErrorHint('');
+            setErrorDetails('');
+            setShowErrorDetails(false);
             fetch('/api/agents')
                 .then(r => r.json())
                 .then(data => {
@@ -33,6 +40,9 @@ export function DispatchDialog({ open, onClose, taskId, taskTitle, onDispatched 
 
     const handleDispatch = async () => {
         setError('');
+        setErrorHint('');
+        setErrorDetails('');
+        setShowErrorDetails(false);
         setLoading(true);
         try {
             const res = await fetch('/api/dispatch', {
@@ -41,8 +51,13 @@ export function DispatchDialog({ open, onClose, taskId, taskTitle, onDispatched 
                 body: JSON.stringify({ taskId, runnerId }),
             });
             if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Dispatch failed');
+                const data = await res.json().catch(() => ({}));
+                const details = data.details
+                    ? JSON.stringify(data.details, null, 2)
+                    : '';
+                setErrorHint(typeof data.hint === 'string' ? data.hint : '');
+                setErrorDetails(details);
+                throw new Error(typeof data.error === 'string' ? data.error : 'Dispatch failed');
             }
             onDispatched();
             onClose();
@@ -82,8 +97,30 @@ export function DispatchDialog({ open, onClose, taskId, taskTitle, onDispatched 
                 </div>
 
                 {error && (
-                    <div className="text-sm text-red-400 bg-red-950/30 border border-red-900/50 rounded-md px-3 py-2">
-                        {error}
+                    <div className="text-sm text-red-400 bg-red-950/30 border border-red-900/50 rounded-md px-3 py-2 space-y-2">
+                        <div>{error}</div>
+                        {errorHint && (
+                            <div className="text-xs text-red-200/80">
+                                {errorHint}
+                            </div>
+                        )}
+                        {errorDetails && (
+                            <div className="pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowErrorDetails((value) => !value)}
+                                    className="inline-flex items-center gap-1 text-xs text-red-200 hover:text-white transition-colors"
+                                >
+                                    {showErrorDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                                    {showErrorDetails ? 'Hide details' : 'Show details'}
+                                </button>
+                                {showErrorDetails && (
+                                    <pre className="mt-2 overflow-x-auto rounded-md border border-red-900/60 bg-black/30 p-3 text-[11px] leading-relaxed text-red-100 whitespace-pre-wrap break-all">
+                                        {errorDetails}
+                                    </pre>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
 
