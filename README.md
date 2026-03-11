@@ -121,7 +121,9 @@ The dashboard exposes REST endpoints (Next.js API routes):
 | `/api/artifacts` | GET | List context files and diff references |
 | `/api/events` | GET | SSE stream — real-time change notifications |
 
-## Quick Start
+## Quickstart
+
+### Patchbay Standalone
 
 ```bash
 # Install dependencies
@@ -140,6 +142,47 @@ PATCHBAY_REPO_ROOT=/path/to/your/repo npm run dev
 npx patchbay task create
 npx patchbay run TASK-001 bash
 npx patchbay status
+```
+
+### Patchbay + Wintermute
+
+1. Initialize Patchbay in your repo:
+
+```bash
+cd /path/to/your/repo
+npx patchbay init
+```
+
+2. Open the same repo in Wintermute.
+3. Use Wintermute in offline mode to browse `.project-agents/` tasks, runs, and decisions directly from the editor.
+4. Optionally start the Patchbay dashboard for connected mode and live updates:
+
+```bash
+cd /path/to/patchbay/packages/dashboard
+PATCHBAY_REPO_ROOT=/path/to/your/repo npm run dev
+```
+
+5. Dispatch a task from Wintermute via the runner picker. Wintermute delegates execution to:
+
+```bash
+patchbay run <taskId> <runnerId>
+```
+
+### Runner Auth
+
+For CLI-based runners, you can configure auth once via `patchbay auth`:
+
+```bash
+# API key mode
+npx patchbay auth set claude-code --api-key <key>
+npx patchbay auth set codex --api-key <key>
+npx patchbay auth set gemini --api-key <key>
+
+# Or subscription/login mode where supported
+npx patchbay auth set claude-code --subscription
+
+# Inspect configured auth
+npx patchbay auth list
 ```
 
 ## Companion: Wintermute
