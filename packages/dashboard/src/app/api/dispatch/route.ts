@@ -13,7 +13,7 @@ import * as path from 'path';
 function createOrchestrator(): Orchestrator {
     const cfg = loadConfig();
     const r = cfg.runners;
-    const orchestrator = new Orchestrator();
+    const orchestrator = new Orchestrator(REPO_ROOT);
     orchestrator.registerRunner('bash', new BashRunner());
     orchestrator.registerRunner('http', new HttpRunner());
     orchestrator.registerRunner('cursor', new CursorRunner());

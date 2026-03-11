@@ -23,7 +23,7 @@ export default function DashboardHome() {
   const blockedTasks = tasks.filter(t => t.status === 'blocked');
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8">
       <header>
         <h1 className="text-3xl font-semibold tracking-tight text-white mb-2">Dashboard</h1>
         <p className="text-surface-400">
