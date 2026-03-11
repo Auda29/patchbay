@@ -9,6 +9,7 @@
     },
     "dependencies": {
         "@patchbay/core": "*",
+        "@patchbay/server": "*",
         "@patchbay/runner-bash": "^0.1.0",
         "@patchbay/runner-claude-code": "^0.1.0",
         "@patchbay/runner-codex": "^0.1.0",

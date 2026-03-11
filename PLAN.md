@@ -406,11 +406,30 @@ Ablauf: Builder liefert Ergebnis → Reviewer kommentiert → Mensch bestätigt 
 - [x] Bestehende interaktive Nutzung bleibt unverändert
 - Ermöglicht CLI-Delegation aus wntrmte Extension (kein TTY bei `child_process.spawn`)
 
-### Phase 7b: Standalone HTTP Server (`@patchbay/server`) — PLANNED
+### Phase 7b: Standalone HTTP Server (`@patchbay/server`) — IN PROGRESS
 
 **Ziel:** Orchestrator-API als leichtgewichtiger Server ohne Next.js-Abhängigkeit.
 
 **Framework:** Fastify (built-in AJV-Validation, TypeScript, `@fastify/sse`)
+
+**Architektur-Zielbild:**
+- `@patchbay/server` wird die gemeinsame HTTP/SSE-Runtime für Patchbay-Clients
+- Das Next.js-Dashboard bleibt primär UI und soll mittelfristig dieselben Handler nutzen statt eigene API-Logik zu duplizieren
+- Runner-Registrierung und Orchestrator-Bootstrap werden zentralisiert, damit CLI, Dashboard und Standalone-Server dieselbe Dispatch-Logik verwenden
+- Scope von 7b ist Infrastruktur, nicht ein neues Datenmodell: bestehende Store-/Orchestrator-/Runner-APIs bleiben maßgeblich
+
+**Nicht-Ziele für 7b:**
+- Kein Ersatz oder Rewrite des Dashboards
+- Keine Auth-/Session-Schicht für Mehrbenutzerbetrieb
+- Keine inhaltliche Erweiterung des SSE-Protokolls über das bestehende `change`-Event hinaus
+- Keine Cloud-/DB-Abstraktion jenseits des bestehenden file-basierten Stores
+
+**Aktueller Stand (Start-Slice umgesetzt):**
+- `packages/server/` wurde angelegt
+- `createConfiguredOrchestrator()` wurde als gemeinsame Runtime-Factory eingeführt
+- `createServer(opts)` existiert und registriert bereits `GET /state` plus `GET /health`
+- CLI-Command `patchbay serve` ist angelegt
+- Vollständige Laufzeit-Verifikation steht noch aus, da die neuen Fastify-Dependencies noch installiert werden müssen
 
 **Package-Struktur:**
 ```
@@ -434,19 +453,75 @@ packages/server/
       eventBus.ts       # Fastify plugin: EventBus Lifecycle
 ```
 
+**Geplante Shared-Extraktionen vor dem Server-Bau:**
+- [x] `createConfiguredOrchestrator()` als gemeinsame Factory extrahieren
+- [~] Runner-Registrierung aus CLI und Dashboard deduplizieren
+- [ ] Wiederverwendbare API-Handler als framework-agnostische Funktionen extrahieren
+- [ ] Einheitliches Fehler-Mapping (`not initialized`, Validation-Fehler, `not found`, interne Fehler)
+
 **Schritte:**
-- [ ] Package `packages/server/` scaffolden
-- [ ] `createServer(opts: { repoRoot: string; port?: number })` Factory
-- [ ] Store-Plugin: dekoriert Request mit Store-Instanz
-- [ ] Route-Handler aus Dashboard-API-Routes extrahieren (thin wrappers, ~150 Zeilen)
+- [x] Package `packages/server/` scaffolden
+- [x] `createServer(opts: { repoRoot: string; port?: number })` Factory
+- [x] Store-Plugin: dekoriert Request mit Store-Instanz
+- [ ] Route-Handler aus Dashboard-API-Routes extrahieren (Next/Fastify nur noch thin wrappers)
 - [ ] EventBus als Fastify-Plugin (bestehender EventBus ist framework-agnostisch)
 - [ ] SSE `/events` via `@fastify/sse`
-- [ ] `patchbay serve [--port 3001] [--repo-root .]` CLI Command
+- [x] `patchbay serve [--port 3001] [--repo-root .]` CLI Command
 - [ ] `packages/server` zu root `package.json` workspaces hinzufügen
+
+**Empfohlene Umsetzungsreihenfolge (PR-freundlich):**
+1. Shared Factorys + Handler extrahieren
+2. `packages/server` bootstrapen und `GET /state` bereitstellen
+3. CRUD-Routen für `tasks`, `runs`, `decisions` übernehmen
+4. `GET /agents` und `GET /artifacts` übernehmen
+5. `POST /dispatch` auf zentrale Runner-Factory umstellen
+6. `GET /events` als SSE-Endpunkt ergänzen
+7. CLI-Command `patchbay serve` integrieren
+8. Optional: Dashboard auf externe API-Base-URL vorbereiten, ohne bestehende Nutzung zu brechen
+
+**Route-Mapping (Soll-Zustand):**
+- `GET /state` → Projekt, Tasks, Runs, Decisions
+- `POST /tasks` → Task anlegen
+- `PATCH /tasks` → Task-Status ändern
+- `GET /runs` → Runs listen, optional nach `taskId` filtern
+- `POST /runs` → Run persistieren
+- `POST /decisions` → Decision anlegen
+- `GET /agents` → Agent-Profile + eingebaute Runner
+- `GET /artifacts` → Context-Dateien + Run-Diff-Referenzen
+- `POST /dispatch` → Task über registrierten Runner ausführen
+- `GET /events` → SSE `change`-Events bei Store-Änderungen
+
+**Technische Leitlinien:**
+- Business-Logik nicht in Fastify-Handlern duplizieren, sondern in wiederverwendbare Funktionsmodule verschieben
+- Dashboard-API-Routen dürfen nach der Extraktion nur Transport-/Response-Code enthalten
+- `repoRoot` muss explizit injizierbar sein, damit Server, Tests und eingebettete Clients dieselbe Runtime nutzen können
+- Bestehende Dateiformate in `.project-agents/` bleiben unverändert
+
+**Risiken / besondere Aufmerksamkeit:**
+- `dispatch` dupliziert aktuell die Runner-Registrierung aus der CLI; diese Divergenz soll in 7b beseitigt werden
+- `agents` und `artifacts` lesen heute direkt aus dem Dateisystem in den Next-Routen; entscheiden, ob diese Logik im Server bleibt oder nach `core` wandert
+- SSE/EventBus-Lifecycle muss Watcher sauber freigeben, damit parallele Clients und Tests keine hängenden Prozesse erzeugen
+- Wenn Dashboard später direkt gegen den Standalone-Server spricht, braucht es eine saubere CORS-Konfiguration
 
 **Verifikation:**
 - `patchbay serve --port 3001` → `curl localhost:3001/state` gibt Projekt-State zurück
+- `curl localhost:3001/tasks` bzw. `POST/PATCH` gegen `/tasks` funktionieren mit denselben Payloads wie bisher
+- `curl localhost:3001/dispatch -X POST` startet einen Run über dieselbe Runner-Konfiguration wie die CLI
 - wntrmte Extension `dashboardUrl` auf `http://localhost:3001` → Tasks laden, SSE funktioniert
 - Next.js Dashboard auf 3000 läuft parallel und unabhängig
+
+**Nächste konkrete Umsetzungsschritte:**
+- `tasks`, `runs` und `decisions` als wiederverwendbare Handler extrahieren und im Server registrieren
+- Dashboard-Route `dispatch` auf die gemeinsame Runner-Factory umstellen
+- EventBus + SSE-Endpunkt in `@patchbay/server` nachziehen
+- Danach erst End-to-End-Verifikation mit installierten Fastify-Paketen durchführen
+
+**Definition of Done:**
+- Standalone-Server startet lokal per CLI ohne Next.js
+- Alle bestehenden Dashboard-Endpunkte sind im Fastify-Server funktional abgebildet
+- Runner-Bootstrap ist zentralisiert und nicht mehr in CLI und Dashboard doppelt implementiert
+- SSE liefert mindestens das bestehende `change`-Signal zuverlässig aus
+- Dashboard und wntrmte können parallel mit dem Server betrieben werden
+- Bestehende Repo-first-Workflows mit `.project-agents/` bleiben unverändert kompatibel
 
 **Abgrenzung:** Dashboard bleibt unverändert. Standalone-Server ist für Clients ohne Dashboard (wntrmte Extension, CI, externe Tools).

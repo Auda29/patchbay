@@ -1,30 +1,14 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { Store, Project, Orchestrator, loadConfig, saveConfig, maskApiKey } from '@patchbay/core';
-import { BashRunner } from '@patchbay/runner-bash';
-import { HttpRunner } from '@patchbay/runner-http';
-import { CursorRunner } from '@patchbay/runner-cursor';
-import { ClaudeCodeRunner } from '@patchbay/runner-claude-code';
-import { CursorCliRunner } from '@patchbay/runner-cursor-cli';
-import { CodexRunner } from '@patchbay/runner-codex';
-import { GeminiRunner } from '@patchbay/runner-gemini';
+import { Store, Project, loadConfig, saveConfig, maskApiKey } from '@patchbay/core';
+import { createConfiguredOrchestrator, createServer } from '@patchbay/server';
 import { prompt } from 'enquirer';
 
 const program = new Command();
 const store = new Store();
 
 function getOrchestrator() {
-    const cfg = loadConfig();
-    const r = cfg.runners;
-    const orchestrator = new Orchestrator();
-    orchestrator.registerRunner('bash', new BashRunner());
-    orchestrator.registerRunner('http', new HttpRunner());
-    orchestrator.registerRunner('cursor', new CursorRunner());
-    orchestrator.registerRunner('claude-code', new ClaudeCodeRunner(r['claude-code']));
-    orchestrator.registerRunner('cursor-cli', new CursorCliRunner(r['cursor-cli']));
-    orchestrator.registerRunner('codex', new CodexRunner(r['codex']));
-    orchestrator.registerRunner('gemini', new GeminiRunner(r['gemini']));
-    return orchestrator;
+    return createConfiguredOrchestrator();
 }
 
 program
@@ -191,6 +175,39 @@ program
             }
         } catch (err: any) {
             console.error(`Run failed:`, err.message);
+            process.exitCode = 1;
+        }
+    });
+
+program
+    .command('serve')
+    .description('Start the standalone Patchbay HTTP server')
+    .option('--port <port>', 'Port to bind the server to', '3001')
+    .option('--host <host>', 'Host to bind the server to', '127.0.0.1')
+    .option('--repo-root <path>', 'Repository root to serve', process.cwd())
+    .action(async (opts: { port: string; host: string; repoRoot: string }) => {
+        const port = Number.parseInt(opts.port, 10);
+        if (Number.isNaN(port) || port <= 0) {
+            console.error(`Invalid port: ${opts.port}`);
+            process.exitCode = 1;
+            return;
+        }
+
+        try {
+            const server = await createServer({
+                repoRoot: opts.repoRoot,
+                port,
+                host: opts.host
+            });
+
+            await server.listen({
+                port,
+                host: opts.host
+            });
+
+            console.log(`Patchbay server listening on http://${opts.host}:${port}`);
+        } catch (err: any) {
+            console.error(`Server failed:`, err.message);
             process.exitCode = 1;
         }
     });
