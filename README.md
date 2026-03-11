@@ -79,7 +79,7 @@ patchbay/
 - `Runner` interface — minimal contract (`execute(input) → output`) that all adapters implement
 
 **`@patchbay/cli`** — command-line interface:
-- `patchbay init` — interactive project setup, creates `.project-agents/` structure
+- `patchbay init` — project setup (interactive or `--yes` for non-interactive), creates `.project-agents/` structure
 - `patchbay task create|list|status` — task management
 - `patchbay run <taskId> <runnerId>` — dispatch a task to a runner
 - `patchbay auth set|list|clear` — manage runner authentication (API keys or subscription mode)
@@ -203,6 +203,8 @@ Patchbay thinks from the outside in (external dashboard). Wintermute thinks from
 - [x] Phase 4: Runner adapters (Bash, HTTP, Cursor, Cursor CLI, Claude Code)
 - [x] Phase 5: Wintermute integration (SSE events, runs API, connected mode)
 - [x] Phase 6: Auth system + Codex/Gemini runners + PatchbayRunner (CLI delegation)
+- [x] Phase 7a: Non-interactive `patchbay init --yes` for CLI delegation from wntrmte extension
+- [ ] Phase 7b: Standalone HTTP server (`@patchbay/server` with Fastify)
 
 See [PLAN.md](PLAN.md) for the detailed technical roadmap.
 

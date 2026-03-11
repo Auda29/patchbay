@@ -399,3 +399,54 @@ Ablauf: Builder liefert Ergebnis → Reviewer kommentiert → Mensch bestätigt 
 - [x] Gemini Runner (`gemini -p`) — new package `@patchbay/runner-gemini`
 - [x] All 7 runners registered with auth in CLI, Dashboard dispatch + agents routes
 - [x] wntrmte extension: PatchbayRunner replaces AgentRunner/ToolRegistry/ApprovalGate
+
+### Phase 7a: Non-Interactive Init — DONE
+- [x] `patchbay init` Optionen: `--name <name>`, `--goal <goal>`, `--tech-stack <stack>`, `-y/--yes`
+- [x] Wenn `--yes`: Prompts überspringen, defaults oder übergebene Werte nutzen
+- [x] Bestehende interaktive Nutzung bleibt unverändert
+- Ermöglicht CLI-Delegation aus wntrmte Extension (kein TTY bei `child_process.spawn`)
+
+### Phase 7b: Standalone HTTP Server (`@patchbay/server`) — PLANNED
+
+**Ziel:** Orchestrator-API als leichtgewichtiger Server ohne Next.js-Abhängigkeit.
+
+**Framework:** Fastify (built-in AJV-Validation, TypeScript, `@fastify/sse`)
+
+**Package-Struktur:**
+```
+packages/server/
+  package.json          # fastify, @fastify/cors, @patchbay/core, runner-*
+  tsconfig.json
+  src/
+    index.ts            # CLI entry
+    server.ts           # createServer(opts) factory → Fastify instance
+    routes/
+      agents.ts         # GET /agents
+      artifacts.ts      # GET /artifacts
+      decisions.ts      # POST /decisions
+      dispatch.ts       # POST /dispatch (registriert alle 7 Runner)
+      events.ts         # GET /events (SSE via EventBus)
+      runs.ts           # GET/POST /runs
+      state.ts          # GET /state
+      tasks.ts          # POST/PATCH /tasks
+    plugins/
+      store.ts          # Fastify plugin: Store-Instanz pro Request
+      eventBus.ts       # Fastify plugin: EventBus Lifecycle
+```
+
+**Schritte:**
+- [ ] Package `packages/server/` scaffolden
+- [ ] `createServer(opts: { repoRoot: string; port?: number })` Factory
+- [ ] Store-Plugin: dekoriert Request mit Store-Instanz
+- [ ] Route-Handler aus Dashboard-API-Routes extrahieren (thin wrappers, ~150 Zeilen)
+- [ ] EventBus als Fastify-Plugin (bestehender EventBus ist framework-agnostisch)
+- [ ] SSE `/events` via `@fastify/sse`
+- [ ] `patchbay serve [--port 3001] [--repo-root .]` CLI Command
+- [ ] `packages/server` zu root `package.json` workspaces hinzufügen
+
+**Verifikation:**
+- `patchbay serve --port 3001` → `curl localhost:3001/state` gibt Projekt-State zurück
+- wntrmte Extension `dashboardUrl` auf `http://localhost:3001` → Tasks laden, SSE funktioniert
+- Next.js Dashboard auf 3000 läuft parallel und unabhängig
+
+**Abgrenzung:** Dashboard bleibt unverändert. Standalone-Server ist für Clients ohne Dashboard (wntrmte Extension, CI, externe Tools).

@@ -34,40 +34,63 @@ program
 
 program
     .command('init')
-    .description('Interactive initialization of a new Patchbay project')
-    .action(async () => {
+    .description('Initialize a new Patchbay project (interactive or non-interactive)')
+    .option('--name <name>', 'Project name')
+    .option('--goal <goal>', 'Main goal of the project')
+    .option('--tech-stack <stack>', 'Tech stack (comma separated)')
+    .option('-y, --yes', 'Non-interactive mode — use provided values or defaults')
+    .action(async (opts: { name?: string; goal?: string; techStack?: string; yes?: boolean }) => {
         if (store.isInitialized) {
             console.error('Error: Patchbay is already initialized in this repository.');
             process.exit(1);
         }
 
         try {
-            const response = await prompt<{ name: string, goal: string, techStack: string }>([
-                {
-                    type: 'input',
-                    name: 'name',
-                    message: 'Project Name?',
-                    initial: 'My Patchbay Project'
-                },
-                {
-                    type: 'input',
-                    name: 'goal',
-                    message: 'Main Goal of this project?',
-                    initial: 'To build awesome software'
-                },
-                {
-                    type: 'input',
-                    name: 'techStack',
-                    message: 'Tech Stack (comma separated)?',
-                    initial: 'Node.js, TypeScript'
-                }
-            ]);
+            const defaults = {
+                name: 'My Patchbay Project',
+                goal: 'To build awesome software',
+                techStack: 'Node.js, TypeScript'
+            };
+
+            let name: string;
+            let goal: string;
+            let techStack: string;
+
+            if (opts.yes) {
+                name = opts.name || defaults.name;
+                goal = opts.goal || defaults.goal;
+                techStack = opts.techStack || defaults.techStack;
+            } else {
+                const response = await prompt<{ name: string, goal: string, techStack: string }>([
+                    {
+                        type: 'input',
+                        name: 'name',
+                        message: 'Project Name?',
+                        initial: opts.name || defaults.name
+                    },
+                    {
+                        type: 'input',
+                        name: 'goal',
+                        message: 'Main Goal of this project?',
+                        initial: opts.goal || defaults.goal
+                    },
+                    {
+                        type: 'input',
+                        name: 'techStack',
+                        message: 'Tech Stack (comma separated)?',
+                        initial: opts.techStack || defaults.techStack
+                    }
+                ]);
+                name = response.name;
+                goal = response.goal;
+                techStack = response.techStack;
+            }
 
             const newProject: Project = {
-                name: response.name,
-                goal: response.goal,
+                name,
+                goal,
                 rules: ['Write clean, maintainable code.', 'Document architectural decisions.'],
-                techStack: response.techStack.split(',').map(s => s.trim()).filter(Boolean)
+                techStack: techStack.split(',').map(s => s.trim()).filter(Boolean)
             };
 
             store.init(newProject);
