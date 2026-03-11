@@ -87,6 +87,7 @@ patchbay/
 
 **Dashboard** — Next.js web application:
 - Project overview with stats and recent activity
+- Inline editing for project goal, rules, and tech stack
 - Kanban task board (open → in_progress → review → done)
 - Run viewer with expandable logs, blockers, and suggested next steps
 - Diff/artifact viewer
@@ -145,6 +146,8 @@ npx patchbay run TASK-001 bash
 npx patchbay status
 ```
 
+`npm run dev` currently starts the dashboard in webpack-based dev mode. That is intentional for now because it is more reliable than Turbopack in the embedded Wintermute workflow, especially on Windows.
+
 ### Patchbay + Wintermute
 
 1. Initialize Patchbay in your repo:
@@ -185,6 +188,8 @@ npx patchbay auth set claude-code --subscription
 # Inspect configured auth
 npx patchbay auth list
 ```
+
+`--subscription` stores the auth mode for that runner and assumes the underlying CLI already has a valid login context. It does not trigger a browser sign-in flow by itself.
 
 ## Companion: Wintermute
 

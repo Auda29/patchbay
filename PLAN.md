@@ -377,8 +377,10 @@ Ablauf: Builder liefert Ergebnis → Reviewer kommentiert → Mensch bestätigt 
 - [x] Interaktive Aktionen (Task/Decision anlegen, Dispatch starten)
 - [x] Dashboard-Polish aus Wintermute-Embedding-Tests
   - Next.js Dev-Indicator standardmäßig auf `bottom-right`
+  - Dev-Server läuft derzeit bewusst über `next dev --webpack` statt Turbopack
   - Task-Status-Dropdown nicht mehr durch Card-Overflow abgeschnitten
   - Dispatch-Dialog zeigt neben Kurzfehler auch `hint` + aufklappbare technische Details
+  - Dispatch-Route nutzt denselben `REPO_ROOT` wie das restliche Dashboard statt implizit `process.cwd()`
   - Projektdaten (`goal`, `rules`, `techStack`) direkt im Dashboard editierbar
 
 ### Phase 4: Runner-Adapter — DONE
