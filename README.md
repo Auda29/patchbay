@@ -13,7 +13,7 @@ Many developers work in parallel with Cursor, Claude Code, Codex, terminals, and
 Patchbay is **not** a new IDE or coding agent. It's a **command center** that sits on top of your existing tools and provides:
 
 - **Structured task management** — tasks, runs, decisions, and artifacts in a single place
-- **Runner dispatch** — send tasks to Bash, Cursor, Claude Code, or HTTP runners from one dashboard
+- **Runner dispatch** — send tasks to Bash, HTTP, Cursor, Cursor CLI, Claude Code, Codex, or Gemini runners from one dashboard
 - **Run history** — every execution is logged with status, output, diffs, and blockers
 - **Decision log** — document and track technical decisions with rationale and approvals
 - **File-based state** — everything lives in `.project-agents/` inside your repo, git-versioned and transparent

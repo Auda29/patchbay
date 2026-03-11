@@ -299,15 +299,17 @@ Ruft externe APIs oder Dokumentation ab.
 - Live-Updates: Task-Status, Run-Logs, neue Artifacts
 - Patchbay-Dashboard als Webview-Panel innerhalb von wntrmte
 
-### 5.3 Approval Gates
+### 5.3 Agent Dispatch (PatchbayRunner)
 
-- Tool-Calls die Genehmigung brauchen lösen Approval-Dialog im Editor aus
-- Mensch bestätigt direkt in wntrmte, nicht im Browser
+- wntrmte delegiert Task-Ausführung an Patchbay CLI (`patchbay run <taskId> <runnerId>`)
+- Runner-Picker mit konfigurierbarem `defaultRunner` Setting
+- Live-Output-Streaming in VS Code Output Channel "Patchbay"
+- CancellationToken-Support (proc.kill() bei Abbruch)
 
 ### Verifikation:
 - Extension zeigt Tasks aus `.project-agents/` im Tree View
 - Bei laufendem Patchbay-Backend: Live-Status-Updates im Editor
-- Approval Gate funktioniert für `shell.execute`-Aufrufe
+- `wntrmte.dispatch` → Task-Picker → Runner-Picker → `patchbay run` spawnt und streamt Output
 
 ---
 
