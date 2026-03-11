@@ -5,6 +5,7 @@
         "patchbay": "./dist/index.js"
     },
     "scripts": {
+        "prebuild": "npm run build --workspace=packages/server",
         "build": "tsc"
     },
     "dependencies": {
