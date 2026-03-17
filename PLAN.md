@@ -507,23 +507,17 @@ Gefunden beim manuellen Testen des ersten Windows-Builds.
 
 ---
 
-## Phase E: Runner Streaming + Server-Terminal — offen
-
-Gefunden beim manuellen Testen: das Terminal zeigt nur "Dispatching Task..." ohne Live-Output; der Next.js-Server öffnet ein separates OS-Fenster statt in Wintermute zu laufen.
+## Phase E: Runner Streaming + Server-Terminal — DONE
 
 ### E1: Runner-Output live streamen
 
-**Problem:** Alle Runner nutzen `promisify(exec)`, das sämtliche Ausgabe puffert bis der Prozess endet. Im Wintermute-Terminal erscheint nur die "Dispatching..."-Zeile, kein Live-Feedback.
+**Umgesetzt:** `exec` → `spawn` mit direktem `process.stdout/stderr`-Piping in allen Runnern. Output fließt gleichzeitig in die Terminal-Ausgabe und in den `logs`-Puffer für die Run-Persistenz.
 
-**Lösung:** `exec` → `spawn` mit direktem `process.stdout/stderr`-Piping in allen Runnern. Output fließt gleichzeitig in die Terminal-Ausgabe und in den `logs`-Puffer für die Run-Persistenz.
-
-- [ ] `packages/runners/claude-code/src/index.ts` — `exec` → `spawn(['-p', prompt])`, `child.stdout.on('data', chunk => { process.stdout.write(chunk); logs.push(chunk.toString()); })`
-- [ ] `packages/runners/bash/src/index.ts` — gleiche Umstellung: `spawn('bash', ['-c', goal])`
-- [ ] `packages/runners/cursor-cli/src/index.ts` — gleiche Umstellung
-- [ ] `packages/runners/codex/src/index.ts` — gleiche Umstellung
-- [ ] `packages/runners/gemini/src/index.ts` — gleiche Umstellung
-
-Keine Änderung an CLI, Orchestrator oder Extension nötig — das Terminal läuft bereits `patchbay run` und der Output fließt jetzt durch.
+- [x] `packages/runners/claude-code/src/index.ts` — `exec` → `spawn(['-p', prompt])`, `child.stdout.on('data', chunk => { process.stdout.write(chunk); logs.push(chunk.toString()); })`
+- [x] `packages/runners/bash/src/index.ts` — gleiche Umstellung: `spawn('bash', ['-c', goal])`
+- [x] `packages/runners/cursor-cli/src/index.ts` — gleiche Umstellung
+- [x] `packages/runners/codex/src/index.ts` — gleiche Umstellung
+- [x] `packages/runners/gemini/src/index.ts` — gleiche Umstellung
 
 ---
 

@@ -53,4 +53,4 @@ Core objects: Project, Task, Run, Decision, Artifact, Agent/Runner Profile. All 
 
 ## Current status
 
-Phases 1–7b + C + D complete. Schema, Orchestrator, Dashboard (Next.js + SWR + SSE), Runner-Adapters (bash, http, cursor, cursor-cli, claude-code, codex, gemini), wntrmte integration, Auth-System, non-interactive `patchbay init --yes`, Standalone server (`@patchbay/server`) with all endpoints and centralized runner-bootstrap, non-blocking `dispatchTaskAsync` (HTTP 202), History page, Test infrastructure (Vitest 31 unit tests + Playwright 11 E2E tests). See `PLAN.md` for details.
+Phases 1–7b + C + D + E complete. Schema, Orchestrator, Dashboard (Next.js + SWR + SSE), Runner-Adapters (bash, http, cursor, cursor-cli, claude-code, codex, gemini), wntrmte integration, Auth-System, non-interactive `patchbay init --yes`, Standalone server (`@patchbay/server`) with all endpoints and centralized runner-bootstrap, non-blocking `dispatchTaskAsync` (HTTP 202), History page, Test infrastructure (Vitest 31 unit tests + Playwright 11 E2E tests), live runner output streaming via `spawn` in all 5 CLI runners. See `PLAN.md` for details.
