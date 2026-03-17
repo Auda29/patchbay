@@ -4,6 +4,8 @@ import { promisify } from 'util';
 import { spawn } from 'child_process';
 import { buildPrompt } from '@patchbay/runner-claude-code';
 
+const execAsync = promisify(exec);
+
 export class GeminiRunner implements Runner {
     name = 'gemini';
 
