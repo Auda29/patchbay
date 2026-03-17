@@ -93,7 +93,8 @@ patchbay/
 - Run viewer with expandable logs, blockers, and suggested next steps
 - Diff/artifact viewer
 - Decision log
-- Interactive dispatch: select a task and runner, execute from the browser
+- History page — all past runs sorted newest-first with status, runner, and duration
+- Interactive dispatch: select a task and runner; returns immediately (HTTP 202) — no waiting for the runner to finish
 
 **Runners:**
 
@@ -167,11 +168,13 @@ cd /path/to/patchbay/packages/dashboard
 PATCHBAY_REPO_ROOT=/path/to/your/repo npm run dev
 ```
 
-5. Dispatch a task from Wintermute via the runner picker. Wintermute delegates execution to:
+5. Dispatch a task from Wintermute via the runner picker. Wintermute opens an integrated terminal and runs:
 
 ```bash
 patchbay run <taskId> <runnerId>
 ```
+
+The terminal shows live output. `Ctrl+C` cancels the runner. The dispatch dialog closes immediately — the runner continues in the background.
 
 ### Runner Auth
 
@@ -213,6 +216,7 @@ Patchbay thinks from the outside in (external dashboard). Wintermute thinks from
 - [x] Phase 7a: Non-interactive `patchbay init --yes` for CLI delegation from wntrmte extension
 - [x] Phase 7b: Standalone HTTP server (`@patchbay/server`) — all endpoints (GET + write + dispatch + SSE), runner-bootstrap centralized
 - [x] Phase C: Test infrastructure — Vitest (31 unit tests: Store, Orchestrator, CLI, BashRunner) + Playwright E2E (11 tests: board + dispatch dialog)
+- [x] Phase D: Non-blocking dispatch (`dispatchTaskAsync`, HTTP 202 — dialog closes immediately) + History page
 
 See [PLAN.md](PLAN.md) for the detailed technical roadmap.
 

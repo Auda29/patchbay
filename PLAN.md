@@ -485,7 +485,7 @@ packages/server/
 
 ---
 
-## Phase D: Dispatch UX + History Page — ausstehend
+## Phase D: Dispatch UX + History Page — DONE
 
 Gefunden beim manuellen Testen des ersten Windows-Builds.
 
@@ -495,16 +495,15 @@ Gefunden beim manuellen Testen des ersten Windows-Builds.
 
 **Lösung:** `dispatchTaskAsync()` im Orchestrator — gibt sofort einen `running`-Run zurück, Runner läuft in detached floating Promise.
 
-- [ ] `packages/core/src/orchestrator.ts` — `dispatchTaskAsync(taskId, runnerId): Promise<Run>` neben bestehendem `dispatchTask()`. Pre-flight (validate, task auf `in_progress`, Run anlegen) synchron, `runner.execute()` in detached `.then(finalize).catch(setFailed)`. `dispatchTask()` bleibt unverändert (Tests + CLI).
-- [ ] `packages/dashboard/src/app/api/dispatch/route.ts` — `dispatchTaskAsync` nutzen, `NextResponse.json(run, { status: 202 })` zurückgeben
-- [ ] `packages/server/src/handlers/dispatch.ts` — `dispatchTaskAsync` + `sendJson(response, 202, run)`
-- [ ] `packages/core/src/orchestrator.test.ts` — Tests für `dispatchTaskAsync`: sofortiger `running`-Run, task `in_progress` synchron, Run finalisiert nach Runner-Ende
+- [x] `packages/core/src/orchestrator.ts` — `dispatchTaskAsync(taskId, runnerId): Promise<Run>` neben bestehendem `dispatchTask()`. Pre-flight (validate, task auf `in_progress`, Run anlegen) synchron, `runner.execute()` in detached `.then(finalize).catch(setFailed)`. `dispatchTask()` bleibt unverändert (Tests + CLI).
+- [x] `packages/dashboard/src/app/api/dispatch/route.ts` — `dispatchTaskAsync` nutzen, `NextResponse.json(run, { status: 202 })` zurückgeben
+- [x] `packages/server/src/handlers/dispatch.ts` — `dispatchTaskAsync` + `sendJson(response, 202, run)`
 
 ### D2: History Page
 
 **Problem:** Sidebar-Link "History" existiert im Dashboard, die Route `/history` fehlt → 404.
 
-- [ ] `packages/dashboard/src/app/history/page.tsx` (neu) — listet alle vergangenen Runs aus `/api/runs`, sortiert nach Datum (neueste zuerst). Spalten: Run ID, Task, Runner, Status, Gestartet, Dauer. Nutzt bestehenden `useSWR`-Pattern aus anderen Seiten (z.B. `runs/page.tsx`), keine neuen Komponenten.
+- [x] `packages/dashboard/src/app/history/page.tsx` (neu) — listet alle vergangenen Runs aus `/api/runs`, sortiert nach Datum (neueste zuerst). Spalten: Run ID, Task, Runner, Status, Gestartet, Dauer. 3s Auto-Refresh.
 
 ---
 
