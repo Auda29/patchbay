@@ -38,8 +38,9 @@ patchbay/
 ├── schema/                        # JSON Schema definitions for .project-agents/
 ├── packages/
 │   ├── core/                      # Orchestrator, Store, Runner interface, Types
-│   ├── cli/                       # CLI tool (patchbay init, task, run, status)
+│   ├── cli/                       # CLI tool (patchbay init, task, run, status, serve)
 │   ├── dashboard/                 # Next.js web dashboard
+│   ├── server/                    # Standalone HTTP server (@patchbay/server)
 │   └── runners/                   # Runner adapters
 │       ├── bash/                  #   Shell command execution
 │       ├── http/                  #   HTTP/API requests
@@ -83,7 +84,7 @@ patchbay/
 - `patchbay task create|list|status` — task management
 - `patchbay run <taskId> <runnerId>` — dispatch a task to a runner
 - `patchbay auth set|list|clear` — manage runner authentication (API keys or subscription mode)
-- `patchbay serve [--port 3001] [--repo-root .]` — start standalone HTTP server (Phase 7b, in progress)
+- `patchbay serve [--port 3001] [--repo-root .]` — start standalone HTTP server (all endpoints + SSE)
 
 **Dashboard** — Next.js web application:
 - Project overview with stats and recent activity
@@ -210,7 +211,7 @@ Patchbay thinks from the outside in (external dashboard). Wintermute thinks from
 - [x] Phase 5: Wintermute integration (SSE events, runs API, connected mode)
 - [x] Phase 6: Auth system + Codex/Gemini runners + PatchbayRunner (CLI delegation)
 - [x] Phase 7a: Non-interactive `patchbay init --yes` for CLI delegation from wntrmte extension
-- [~] Phase 7b: Standalone HTTP server (`@patchbay/server`) — scaffolded, `/state` + `/health` + `patchbay serve` done; remaining routes + SSE pending
+- [x] Phase 7b: Standalone HTTP server (`@patchbay/server`) — all endpoints (GET + write + dispatch + SSE), runner-bootstrap centralized
 
 See [PLAN.md](PLAN.md) for the detailed technical roadmap.
 

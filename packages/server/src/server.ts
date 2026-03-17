@@ -3,9 +3,9 @@ import * as path from 'path';
 import { Store } from '@patchbay/core';
 import type { CreateServerOptions } from './types';
 import { getState } from './handlers/state';
-import { getTasks, getTask } from './handlers/tasks';
-import { getRuns } from './handlers/runs';
-import { getDecisions } from './handlers/decisions';
+import { getTasks, getTask, postTask, patchTask } from './handlers/tasks';
+import { getRuns, postRun } from './handlers/runs';
+import { getDecisions, postDecision } from './handlers/decisions';
 import { getAgents } from './handlers/agents';
 import { getArtifacts } from './handlers/artifacts';
 import { postDispatch } from './handlers/dispatch';
@@ -49,26 +49,25 @@ export async function createServer(opts: CreateServerOptions): Promise<Server> {
                 return;
             }
 
-            if (method === 'GET' && urlPath === '/tasks') {
-                getTasks(store, response);
-                return;
+            if (urlPath === '/tasks') {
+                if (method === 'GET') { getTasks(store, response); return; }
+                if (method === 'POST') { await postTask(store, request, response); return; }
             }
 
             const taskMatch = urlPath.match(/^\/tasks\/([^/]+)$/);
-            if (method === 'GET' && taskMatch) {
-                getTask(store, response, taskMatch[1]);
-                return;
+            if (taskMatch) {
+                if (method === 'GET') { getTask(store, response, taskMatch[1]); return; }
+                if (method === 'PATCH') { await patchTask(store, request, response, taskMatch[1]); return; }
             }
 
-            if (method === 'GET' && urlPath === '/runs') {
-                const { taskId } = parseQueryString(rawUrl);
-                getRuns(store, response, taskId);
-                return;
+            if (urlPath === '/runs') {
+                if (method === 'GET') { const { taskId } = parseQueryString(rawUrl); getRuns(store, response, taskId); return; }
+                if (method === 'POST') { await postRun(store, request, response); return; }
             }
 
-            if (method === 'GET' && urlPath === '/decisions') {
-                getDecisions(store, response);
-                return;
+            if (urlPath === '/decisions') {
+                if (method === 'GET') { getDecisions(store, response); return; }
+                if (method === 'POST') { await postDecision(store, request, response); return; }
             }
 
             if (method === 'GET' && urlPath === '/agents') {

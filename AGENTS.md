@@ -18,7 +18,7 @@ Patchbay **owns** the orchestration logic and the `.project-agents/` schema. The
 
 ## Project structure
 
-```
+```text
 patchbay/
 ├── schema/           # .project-agents/ JSON Schemas
 ├── packages/
@@ -26,8 +26,8 @@ patchbay/
 │   ├── cli/          # patchbay init (interactive + --yes), task create/list/status, run, status, auth, serve
 │   ├── dashboard/    # Next.js + Tailwind + SWR dashboard
 │   │   └── src/app/api/  # API routes: state, dispatch, artifacts, tasks, runs, agents, events (SSE)
-│   ├── server/       # Standalone HTTP server (@patchbay/server, patchbay serve) — IN PROGRESS
-│   │   └── src/      # createServer(), GET /state + /health; remaining routes pending
+│   ├── server/       # Standalone HTTP server (@patchbay/server, patchbay serve) — DONE
+│   │   └── src/      # createServer(), all routes: GET/POST/PATCH + dispatch + SSE + EventBus
 │   └── runners/
 │       ├── bash/         # Shell command execution
 │       ├── http/         # GET URL fetch
@@ -53,4 +53,4 @@ Core objects: Project, Task, Run, Decision, Artifact, Agent/Runner Profile. All 
 
 ## Current status
 
-Phases 1–7a complete. Phase 7b in progress. Schema, Orchestrator, Dashboard (Next.js + SWR + SSE), Runner-Adapters (bash, http, cursor, cursor-cli, claude-code, codex, gemini), wntrmte integration, Auth-System (`patchbay auth` CLI, `RunnerAuth` with API key / subscription modes), non-interactive `patchbay init --yes`. Standalone server (`@patchbay/server`): scaffolded with `GET /state` + `/health` + `patchbay serve` CLI command; remaining routes + SSE pending. See `PLAN.md` for details.
+Phases 1–7b complete. Schema, Orchestrator, Dashboard (Next.js + SWR + SSE), Runner-Adapters (bash, http, cursor, cursor-cli, claude-code, codex, gemini), wntrmte integration, Auth-System (`patchbay auth` CLI, `RunnerAuth` with API key / subscription modes), non-interactive `patchbay init --yes`, Standalone server (`@patchbay/server`) with all endpoints (GET + write + dispatch + SSE) and centralized runner-bootstrap. See `PLAN.md` for details.
