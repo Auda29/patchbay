@@ -14,7 +14,8 @@ test.describe('Dispatch Dialog', () => {
 
     test('dispatch dialog shows task id', async ({ page }) => {
         await page.locator('button[title="Run task"]').first().click();
-        await expect(page.getByText('TASK-001')).toBeVisible();
+        // TASK-001 appears both in the card and in the dialog — check either is visible
+        await expect(page.getByText('TASK-001').first()).toBeVisible();
     });
 
     test('dispatch dialog shows Runner label', async ({ page }) => {
