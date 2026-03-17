@@ -30,10 +30,23 @@ jobs:
           npm run build --workspace=packages/runners/cursor-cli
           npm run build --workspace=packages/runners/gemini
 
-      - name: Build cli and dashboard
+      - name: Build cli and server
         run: |
+          npm run build --workspace=packages/server
           npm run build --workspace=packages/cli
-          npm run build --workspace=packages/dashboard
+
+      - name: Build dashboard
+        run: npm run build --workspace=packages/dashboard
 
       - name: Lint dashboard
-        run: npm run lint --workspace=dashboard
+        run: npm run lint --workspace=packages/dashboard
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: packages/dashboard
+
+      - name: Run E2E tests
+        run: npm run test:e2e --workspace=packages/dashboard

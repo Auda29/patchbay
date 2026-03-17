@@ -6,10 +6,12 @@
         "packages/runners/*"
     ],
     "scripts": {
-        "build": "npm run build --workspaces"
+        "build": "npm run build --workspaces",
+        "test": "vitest run"
     },
     "devDependencies": {
         "typescript": "^5.3.3",
-        "@types/node": "^20.0.0"
+        "@types/node": "^20.0.0",
+        "vitest": "^2.0.0"
     }
 }

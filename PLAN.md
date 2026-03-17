@@ -485,24 +485,22 @@ packages/server/
 
 ---
 
-## Phase C: Test-Infrastruktur — ausstehend
+## Phase C: Test-Infrastruktur — DONE
 
-Drei Schichten, eine pro Deployment-Artefakt. Kein bestehender Test-Code — alles neu.
+### Schicht 1: Patchbay Core + CLI (Vitest) — 31 Tests
 
-### Schicht 1: Patchbay Core + CLI (Vitest)
-
-- [ ] `vitest` als Root-devDependency + `"test": "vitest run"` Script in `patchbay/package.json`
-- [ ] `vitest.config.ts` im Patchbay-Root (include: `packages/*/src/**/*.test.ts`)
-- [ ] `packages/core/src/store.test.ts` — Store CRUD gegen `os.tmpdir()` Fixture
-- [ ] `packages/core/src/orchestrator.test.ts` — Task-State-Transitions
-- [ ] `packages/cli/src/init.test.ts` — `patchbay init --yes` via `execSync`, prüft alle 5 Subdirs
-- [ ] `packages/runners/bash/src/runner.test.ts` — BashRunner mit fixture command
-- [ ] CI: `npm test` Step in `.github/workflows/build.yml` (nach build)
+- [x] `vitest` als Root-devDependency + `"test": "vitest run"` Script in `patchbay/package.json`
+- [x] `vitest.config.ts` im Patchbay-Root (include: `packages/*/src/**/*.test.ts`)
+- [x] `packages/core/src/store.test.ts` — Store CRUD gegen `os.tmpdir()` Fixture (14 Tests)
+- [x] `packages/core/src/orchestrator.test.ts` — Task-State-Transitions (9 Tests)
+- [x] `packages/cli/src/init.test.ts` — `patchbay init --yes` via `execSync`, prüft alle 5 Subdirs (3 Tests)
+- [x] `packages/runners/bash/src/runner.test.ts` — BashRunner mit fixture command (5 Tests)
+- [x] CI: `npm test` Step in `.github/workflows/build.yml` (nach build)
 
 ### Schicht 2: Dashboard E2E (Playwright)
 
-- [ ] `@playwright/test` in `packages/dashboard/` + `playwright.config.ts` (webServer: Next.js gegen Fixture)
-- [ ] `e2e/fixtures/.project-agents/` — Seeded Fixture-Workspace (project.yml + TASK-001.md)
-- [ ] `e2e/tests/board.spec.ts` — Kanban-Board rendert Tasks, Dispatch-Button sichtbar
-- [ ] `e2e/tests/dispatch.spec.ts` — Dispatch-Dialog: Runner wählen + abschicken
-- [ ] CI: Playwright-Install + `npm run test:e2e` in `build.yml` (nur Chromium)
+- [x] `@playwright/test` in `packages/dashboard/` + `playwright.config.ts` (webServer: Next.js gegen Fixture, via `env`)
+- [x] `e2e/fixtures/.project-agents/` — Seeded Fixture-Workspace (project.yml + TASK-001.yml)
+- [x] `e2e/tests/board.spec.ts` — Kanban-Board rendert Tasks, Dispatch-Button sichtbar (6 Tests)
+- [x] `e2e/tests/dispatch.spec.ts` — Dispatch-Dialog: öffnen, Felder prüfen, schließen (5 Tests)
+- [x] CI: Playwright-Install + `npm run test:e2e` in `build.yml` (nur Chromium)

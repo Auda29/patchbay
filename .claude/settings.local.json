@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npx tsc:*)",
       "Bash(npm run:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(grep -rn \"dispatch\\\\|Dispatch\\\\|task-card\\\\|TaskCard\\\\|runner\\\\|Runner\" /c/Users/wecke/Projects/wntrmte_patchbay/patchbay/packages/dashboard/src/components/ --include=*.tsx -l)",
+      "Bash(npm test:*)"
     ]
   }
 }

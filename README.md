@@ -212,6 +212,7 @@ Patchbay thinks from the outside in (external dashboard). Wintermute thinks from
 - [x] Phase 6: Auth system + Codex/Gemini runners + PatchbayRunner (CLI delegation)
 - [x] Phase 7a: Non-interactive `patchbay init --yes` for CLI delegation from wntrmte extension
 - [x] Phase 7b: Standalone HTTP server (`@patchbay/server`) — all endpoints (GET + write + dispatch + SSE), runner-bootstrap centralized
+- [x] Phase C: Test infrastructure — Vitest (31 unit tests: Store, Orchestrator, CLI, BashRunner) + Playwright E2E (11 tests: board + dispatch dialog)
 
 See [PLAN.md](PLAN.md) for the detailed technical roadmap.
 
