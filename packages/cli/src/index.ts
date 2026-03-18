@@ -170,8 +170,14 @@ program
         try {
             const run = await orchestrator.dispatchTask(taskId, runnerId);
             console.log(`Run finished with status: ${run.status}`);
-            console.log(`Summary: ${run.summary}`);
+            console.log(`Summary: ${run.summary ?? '(no summary)'}`);
             if (run.status === 'failed') {
+                if (run.logs?.length) {
+                    console.error(`\nLogs:\n${run.logs.join('\n')}`);
+                }
+                if (run.installHint) {
+                    console.log(`\nInstall hint: ${run.installHint}`);
+                }
                 process.exitCode = 1;
             }
         } catch (err: any) {

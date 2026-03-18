@@ -35,11 +35,15 @@ export class CodexRunner implements Runner {
 
         return new Promise<RunnerOutput>((resolve) => {
             const bin = process.platform === 'win32' ? 'codex.cmd' : 'codex';
-            const args = ['exec', prompt];
+            const args = ['exec'];
             const child = spawn(bin, args, {
                 cwd: input.repoPath,
                 env,
             });
+
+            // Pipe prompt via stdin to avoid OS argument-length limits (Windows EINVAL)
+            child.stdin?.write(prompt);
+            child.stdin?.end();
 
             let firstLine: string | undefined;
             let settled = false;

@@ -92,6 +92,7 @@ export class Orchestrator {
     private setFailed(run: Run, task: Task, err: any) {
         run.status = 'failed';
         run.endTime = new Date().toISOString();
+        run.summary = `Runner error: ${err.message || String(err)}`;
         run.logs = [err.message, err.stack];
         task.status = 'open';
     }
