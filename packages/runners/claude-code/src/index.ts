@@ -60,12 +60,18 @@ export class ClaudeCodeRunner implements Runner {
             : process.env;
 
         return new Promise<RunnerOutput>((resolve) => {
-            const bin = process.platform === 'win32' ? 'claude.cmd' : 'claude';
-            const args = ['-p', prompt];
-            const child = spawn(bin, args, {
+            const isWin = process.platform === 'win32';
+            const bin = isWin ? 'claude.cmd' : 'claude';
+            // On Windows, .cmd files require shell:true. Pass prompt via stdin
+            // to avoid cmd.exe word-splitting the prompt when passed as an argument.
+            const child = spawn(bin, ['-p'], {
                 cwd: input.repoPath,
                 env,
+                shell: isWin,
+                stdio: ['pipe', 'pipe', 'pipe'],
             });
+            child.stdin!.write(prompt);
+            child.stdin!.end();
 
             let firstLine: string | undefined;
             let settled = false;

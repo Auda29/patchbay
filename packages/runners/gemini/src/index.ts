@@ -34,12 +34,16 @@ export class GeminiRunner implements Runner {
             : process.env;
 
         return new Promise<RunnerOutput>((resolve) => {
-            const bin = process.platform === 'win32' ? 'gemini.cmd' : 'gemini';
-            const args = ['-p', prompt];
-            const child = spawn(bin, args, {
+            const isWin = process.platform === 'win32';
+            const bin = isWin ? 'gemini.cmd' : 'gemini';
+            const child = spawn(bin, ['-p'], {
                 cwd: input.repoPath,
                 env,
+                shell: isWin,
+                stdio: ['pipe', 'pipe', 'pipe'],
             });
+            child.stdin!.write(prompt);
+            child.stdin!.end();
 
             let firstLine: string | undefined;
             let settled = false;
