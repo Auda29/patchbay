@@ -507,6 +507,31 @@ Gefunden beim manuellen Testen des ersten Windows-Builds.
 
 ---
 
+## Phase I: Windows Runner Spawn Fix — DONE
+
+`spawn EINVAL` on Windows when dispatching to CLI runners. Root cause: newer Node.js versions (DEP0190) reject `spawn('foo.cmd')` without `shell: true` — `.cmd` files are batch scripts and cannot be executed by `CreateProcess` directly. Additionally, passing the prompt as a CLI argument with `shell: true` causes cmd.exe to word-split the prompt on spaces.
+
+**Fix:** Use `shell: true` on Windows only, pass prompt via stdin instead of as a CLI argument (stdin avoids cmd.exe word-splitting), and drop the `.cmd` suffix (cmd.exe resolves extensions automatically).
+
+```typescript
+const isWin = process.platform === 'win32';
+// shell:true on Windows: cmd.exe resolves 'claude' → 'claude.cmd' automatically.
+// Prompt via stdin: avoids cmd.exe word-splitting when passed as an argument.
+const child = spawn('claude', ['-p'], {
+    cwd: input.repoPath, env,
+    shell: isWin,
+    stdio: ['pipe', 'pipe', 'pipe'],
+});
+child.stdin!.write(prompt);
+child.stdin!.end();
+```
+
+- [x] `packages/runners/claude-code/src/index.ts` — `shell: isWin`, bin `'claude'`, prompt via stdin
+- [x] `packages/runners/codex/src/index.ts` — `shell: isWin`, bin `'codex'`, prompt via stdin
+- [x] `packages/runners/gemini/src/index.ts` — `shell: isWin`, bin `'gemini'`, prompt via stdin
+
+---
+
 ## Phase H: Runner Install-on-Demand — DONE
 
 Wenn ein CLI-Runner nicht auf dem Host installiert ist (z.B. `claude`, `codex`, `gemini` nicht im PATH), soll nicht nur eine generische Fehlermeldung erscheinen — sondern ein strukturierter `installHint` zurückgegeben werden, den Wintermute und das Dashboard nutzen um eine direkte Install-Option anzubieten.

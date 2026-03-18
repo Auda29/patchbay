@@ -39,8 +39,7 @@ export default function DashboardHome() {
           title="Active Tasks"
           value={activeTasks.length.toString()}
           icon={Activity}
-          trend="+2 since yesterday"
-          color="text-blue-400"
+color="text-blue-400"
         />
         <StatCard
           title="Open Tasks"
