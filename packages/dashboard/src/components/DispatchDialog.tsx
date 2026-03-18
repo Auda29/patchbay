@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Modal } from './Modal';
-import { AlertTriangle, ChevronDown, ChevronUp, Loader2, Play } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronUp, Loader2, Play, Terminal } from 'lucide-react';
 
 interface AgentInfo {
     id: string;
@@ -27,6 +27,7 @@ export function DispatchDialog({ open, onClose, taskId, taskTitle, onDispatched 
     const [errorHint, setErrorHint] = useState('');
     const [errorDetails, setErrorDetails] = useState('');
     const [showErrorDetails, setShowErrorDetails] = useState(false);
+    const [installCopied, setInstallCopied] = useState(false);
 
     const selectedAgent = agents.find(a => a.id === runnerId);
 
@@ -53,6 +54,17 @@ export function DispatchDialog({ open, onClose, taskId, taskTitle, onDispatched 
     // In that context we relay dispatch to the Extension Host via postMessage
     // instead of making an HTTP call.
     const isVsCodeWebview = typeof window !== 'undefined' && window.parent !== window;
+
+    const handleInstall = (hint: string) => {
+        if (isVsCodeWebview) {
+            window.parent.postMessage({ command: 'wntrmte.runInTerminal', args: [hint] }, '*');
+        } else {
+            navigator.clipboard.writeText(hint).then(() => {
+                setInstallCopied(true);
+                setTimeout(() => setInstallCopied(false), 2000);
+            }).catch(() => {});
+        }
+    };
 
     const handleDispatch = async () => {
         setError('');
@@ -124,9 +136,21 @@ export function DispatchDialog({ open, onClose, taskId, taskTitle, onDispatched 
                     {selectedAgent?.available === false && selectedAgent.installHint && (
                         <div className="mt-2 flex items-start gap-2 text-xs text-yellow-400 bg-yellow-950/30 border border-yellow-900/50 rounded-md px-3 py-2">
                             <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                            <div>
+                            <div className="flex-1 min-w-0">
                                 <span className="font-medium">{selectedAgent.id}</span> is not installed.
-                                <code className="ml-1 px-1.5 py-0.5 bg-black/30 rounded text-yellow-200 select-all">{selectedAgent.installHint}</code>
+                                <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                                    <code className="px-1.5 py-0.5 bg-black/30 rounded text-yellow-200 select-all break-all">{selectedAgent.installHint}</code>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleInstall(selectedAgent.installHint!)}
+                                        className="inline-flex items-center gap-1 px-2 py-1 rounded bg-yellow-900/40 hover:bg-yellow-800/50 text-yellow-200 hover:text-white transition-colors shrink-0"
+                                    >
+                                        <Terminal className="w-3 h-3" />
+                                        {isVsCodeWebview
+                                            ? 'Install in Terminal'
+                                            : installCopied ? 'Copied!' : 'Copy'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
