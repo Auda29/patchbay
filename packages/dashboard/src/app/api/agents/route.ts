@@ -1,8 +1,36 @@
 import { NextResponse } from 'next/server';
 import { getStore } from '@/lib/store';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as yaml from 'yaml';
+
+const execAsync = promisify(exec);
+
+const installHints: Record<string, string> = {
+    'claude-code': 'npm install -g @anthropic-ai/claude-code',
+    'codex': 'npm install -g @openai/codex',
+    'gemini': 'npm install -g @google/gemini-cli',
+    'cursor-cli': 'https://cursor.com/download',
+};
+
+const cliBinaries: Record<string, string> = {
+    'claude-code': 'claude',
+    'codex': 'codex',
+    'gemini': 'gemini',
+    'cursor-cli': 'cursor',
+};
+
+async function checkBinary(name: string): Promise<boolean> {
+    const cmd = process.platform === 'win32' ? `where ${name}` : `which ${name}`;
+    try {
+        await execAsync(cmd);
+        return true;
+    } catch {
+        return false;
+    }
+}
 
 export async function GET() {
     try {
@@ -46,7 +74,24 @@ export async function GET() {
             if (!existingIds.has(runner.id)) agents.push(runner);
         }
 
-        return NextResponse.json({ agents });
+        // Check availability of CLI-based runners in parallel
+        const availabilityChecks = agents.map(async (agent) => {
+            const bin = cliBinaries[agent.id];
+            if (!bin) {
+                // bash, http, cursor (file-based) are always available
+                return { ...agent, available: true, installHint: undefined };
+            }
+            const available = await checkBinary(bin);
+            return {
+                ...agent,
+                available,
+                installHint: available ? undefined : installHints[agent.id],
+            };
+        });
+
+        const enrichedAgents = await Promise.all(availabilityChecks);
+
+        return NextResponse.json({ agents: enrichedAgents });
     } catch (error) {
         const msg = error instanceof Error ? error.message : 'Internal error';
         return NextResponse.json({ error: msg }, { status: 500 });

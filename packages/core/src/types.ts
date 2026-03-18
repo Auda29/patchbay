@@ -39,6 +39,8 @@ export interface Run {
     diffRef?: string;
     blockers?: string[];
     suggestedNextSteps?: string[];
+    /** Shell command to install the missing runner CLI (propagated from RunnerOutput). */
+    installHint?: string;
 }
 
 export interface Decision {

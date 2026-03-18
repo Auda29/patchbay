@@ -22,6 +22,7 @@ export class CodexRunner implements Runner {
                 status: 'failed',
                 summary: 'codex CLI not found. Install OpenAI Codex CLI to use this runner.',
                 logs: ['ERROR: `codex` command not found in PATH.'],
+                installHint: 'npm install -g @openai/codex',
             };
         }
 

@@ -71,7 +71,7 @@ export async function createServer(opts: CreateServerOptions): Promise<Server> {
             }
 
             if (method === 'GET' && urlPath === '/agents') {
-                getAgents(agentsDir, response);
+                await getAgents(agentsDir, response);
                 return;
             }
 

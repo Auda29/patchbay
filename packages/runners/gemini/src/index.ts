@@ -22,6 +22,7 @@ export class GeminiRunner implements Runner {
                 status: 'failed',
                 summary: 'gemini CLI not found. Install Google Gemini CLI to use this runner.',
                 logs: ['ERROR: `gemini` command not found in PATH.'],
+                installHint: 'npm install -g @google/gemini-cli',
             };
         }
 

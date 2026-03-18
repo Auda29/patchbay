@@ -86,6 +86,7 @@ export class Orchestrator {
         run.diffRef = output.diffRef;
         run.blockers = output.blockers;
         run.suggestedNextSteps = output.suggestedNextSteps;
+        run.installHint = output.installHint;
     }
 
     private setFailed(run: Run, task: Task, err: any) {

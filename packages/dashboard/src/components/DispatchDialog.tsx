@@ -1,7 +1,15 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Modal } from './Modal';
-import { ChevronDown, ChevronUp, Loader2, Play } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronUp, Loader2, Play } from 'lucide-react';
+
+interface AgentInfo {
+    id: string;
+    role: string;
+    toolType: string;
+    available?: boolean;
+    installHint?: string;
+}
 
 interface DispatchDialogProps {
     open: boolean;
@@ -13,12 +21,14 @@ interface DispatchDialogProps {
 
 export function DispatchDialog({ open, onClose, taskId, taskTitle, onDispatched }: DispatchDialogProps) {
     const [runnerId, setRunnerId] = useState('bash');
-    const [agents, setAgents] = useState<{ id: string; role: string; toolType: string }[]>([]);
+    const [agents, setAgents] = useState<AgentInfo[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [errorHint, setErrorHint] = useState('');
     const [errorDetails, setErrorDetails] = useState('');
     const [showErrorDetails, setShowErrorDetails] = useState(false);
+
+    const selectedAgent = agents.find(a => a.id === runnerId);
 
     useEffect(() => {
         if (open) {
@@ -31,7 +41,8 @@ export function DispatchDialog({ open, onClose, taskId, taskTitle, onDispatched 
                 .then(data => {
                     if (data.agents?.length) {
                         setAgents(data.agents);
-                        setRunnerId(data.agents[0].id);
+                        const firstAvailable = data.agents.find((a: AgentInfo) => a.available !== false);
+                        setRunnerId((firstAvailable ?? data.agents[0]).id);
                     }
                 })
                 .catch(() => {});
@@ -105,11 +116,20 @@ export function DispatchDialog({ open, onClose, taskId, taskTitle, onDispatched 
                         onChange={e => setRunnerId(e.target.value)}
                     >
                         {agents.map(a => (
-                            <option key={a.id} value={a.id}>
-                                {a.id} — {a.role}
+                            <option key={a.id} value={a.id} disabled={a.available === false}>
+                                {a.id} — {a.role}{a.available === false ? ' (not installed)' : ''}
                             </option>
                         ))}
                     </select>
+                    {selectedAgent?.available === false && selectedAgent.installHint && (
+                        <div className="mt-2 flex items-start gap-2 text-xs text-yellow-400 bg-yellow-950/30 border border-yellow-900/50 rounded-md px-3 py-2">
+                            <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                            <div>
+                                <span className="font-medium">{selectedAgent.id}</span> is not installed.
+                                <code className="ml-1 px-1.5 py-0.5 bg-black/30 rounded text-yellow-200 select-all">{selectedAgent.installHint}</code>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {error && (
@@ -150,7 +170,7 @@ export function DispatchDialog({ open, onClose, taskId, taskTitle, onDispatched 
                     </button>
                     <button
                         onClick={handleDispatch}
-                        disabled={loading}
+                        disabled={loading || selectedAgent?.available === false}
                         className="bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2 px-5 rounded-md transition-colors shadow-[0_0_15px_rgba(92,129,163,0.3)] flex items-center gap-2 text-sm"
                     >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}

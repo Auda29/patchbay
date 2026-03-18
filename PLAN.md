@@ -507,6 +507,53 @@ Gefunden beim manuellen Testen des ersten Windows-Builds.
 
 ---
 
+## Phase H: Runner Install-on-Demand — DONE
+
+Wenn ein CLI-Runner nicht auf dem Host installiert ist (z.B. `claude`, `codex`, `gemini` nicht im PATH), soll nicht nur eine generische Fehlermeldung erscheinen — sondern ein strukturierter `installHint` zurückgegeben werden, den Wintermute und das Dashboard nutzen um eine direkte Install-Option anzubieten.
+
+### H1: Binary-Check + `installHint` in CLI-Runnern
+
+**Problem:** Aktuell schlägt `spawn` mit `ENOENT` fehl wenn das Binary nicht gefunden wird. Die Fehlermeldung gibt keinen Hinweis wie man das Tool installiert.
+
+**Fix:** Vor `spawn` prüfen ob das Binary vorhanden ist (`which`/`where`). Bei fehlendem Binary sofort `status: 'failed'` mit `installHint` zurückgeben — kein `spawn`-Versuch.
+
+```typescript
+const bin = process.platform === 'win32' ? 'claude.cmd' : 'claude';
+const available = await checkBinary(bin); // which/where
+if (!available) {
+  return {
+    status: 'failed',
+    logs: ['claude-code is not installed'],
+    installHint: 'npm install -g @anthropic-ai/claude-code',
+  };
+}
+```
+
+- [ ] `packages/core/src/runner.ts` — `RunnerOutput` um optionales `installHint?: string`-Feld erweitern
+- [ ] `packages/runners/claude-code/src/index.ts` — Binary-Check; `installHint: 'npm install -g @anthropic-ai/claude-code'`
+- [ ] `packages/runners/codex/src/index.ts` — Binary-Check; `installHint: 'npm install -g @openai/codex'`
+- [ ] `packages/runners/gemini/src/index.ts` — Binary-Check; `installHint: 'npm install -g @google/gemini-cli'`
+- [ ] `packages/runners/cursor-cli/src/index.ts` — Binary-Check; `installHint: 'https://cursor.com/download'` (kein npm-Package)
+
+### H2: Install-Prompt in Wintermute
+
+**Problem:** `dispatchInTerminal` zeigt bei fehlgeschlagenem Run nur den Exit-Code im Terminal — kein Hinweis auf fehlende Installation.
+
+**Fix:** Run-Result auf `installHint` prüfen; bei Treffer `window.showErrorMessage` mit Button "In Terminal installieren" anzeigen.
+
+- [ ] `extensions/wntrmte-workflow/src/extension.ts` — nach `patchbay run` Abschluss: Run-JSON aus `.project-agents/runs/` lesen, `installHint` auswerten
+- [ ] Bei `installHint`: `window.showErrorMessage('<runner> ist nicht installiert', 'In Terminal installieren')` — Klick öffnet Terminal mit `installHint`-Kommando
+
+### H3: Install-Hinweis im Dashboard
+
+**Problem:** Run-Viewer zeigt bei `status: 'failed'` nur die Logs — `installHint` wird nicht gesondert hervorgehoben.
+
+- [ ] `packages/dashboard/src/app/runs/[id]/page.tsx` (oder Run-Viewer Komponente) — `installHint` als hervorgehobenen Code-Block mit Copy-Button rendern wenn vorhanden
+- [ ] `packages/dashboard/src/app/api/agents/route.ts` — Availability-Check pro Runner (`which`/`where`) in den Response einbauen (`available: boolean`)
+- [ ] `packages/dashboard/src/components/DispatchDialog.tsx` — Runner mit `available: false` als deaktiviert + Warnung mit `installHint` anzeigen
+
+---
+
 ## Phase G: Runner `shell: true` Regression Fix — DONE
 
 Phase F's `shell: true` introduced three regressions: DEP0190 deprecation warnings (Node.js flags passing args array to shell as security concern), prompt word-splitting in codex ("unexpected argument 'Project' found" — cmd.exe splits the joined prompt on spaces), and cursor-cli opening Cursor interactively instead of running headlessly.

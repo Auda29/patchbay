@@ -17,6 +17,8 @@ export interface RunnerOutput {
     logs: string[];
     blockers?: string[];
     suggestedNextSteps?: string[];
+    /** Shell command that would install the missing CLI tool (e.g. "npm install -g @anthropic-ai/claude-code"). */
+    installHint?: string;
 }
 
 export interface Runner {

@@ -64,6 +64,10 @@
                 "type": "string"
             },
             "description": "Runner's suggestions for the next actions"
+        },
+        "installHint": {
+            "type": "string",
+            "description": "Shell command or URL to install a missing runner CLI"
         }
     },
     "required": [

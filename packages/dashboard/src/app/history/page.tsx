@@ -1,7 +1,7 @@
 'use client';
 import useSWR from 'swr';
 import { Run } from '@patchbay/core';
-import { History, CheckCircle2, XCircle, Clock, AlertCircle } from 'lucide-react';
+import { History, CheckCircle2, XCircle, Clock, AlertCircle, Download } from 'lucide-react';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -83,6 +83,7 @@ export default function HistoryPage() {
                                 <th className="px-4 py-3 text-xs font-medium text-surface-500 uppercase tracking-wider">Status</th>
                                 <th className="px-4 py-3 text-xs font-medium text-surface-500 uppercase tracking-wider">Started</th>
                                 <th className="px-4 py-3 text-xs font-medium text-surface-500 uppercase tracking-wider">Duration</th>
+                                <th className="px-4 py-3 text-xs font-medium text-surface-500 uppercase tracking-wider">Info</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-surface-800/50">
@@ -108,6 +109,14 @@ export default function HistoryPage() {
                                             ? <span className="text-blue-400 animate-pulse">Running...</span>
                                             : formatDuration(run.startTime, run.endTime)
                                         }
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {run.status === 'failed' && run.installHint && (
+                                            <span className="inline-flex items-center gap-1.5 text-xs text-yellow-400" title={`Install: ${run.installHint}`}>
+                                                <Download className="w-3.5 h-3.5" />
+                                                <code className="px-1.5 py-0.5 bg-yellow-950/30 border border-yellow-900/50 rounded select-all">{run.installHint}</code>
+                                            </span>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

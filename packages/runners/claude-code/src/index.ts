@@ -48,6 +48,7 @@ export class ClaudeCodeRunner implements Runner {
                 status: 'failed',
                 summary: 'claude CLI not found. Install Claude Code to use this runner.',
                 logs: ['ERROR: `claude` command not found in PATH.'],
+                installHint: 'npm install -g @anthropic-ai/claude-code',
             };
         }
 
