@@ -68,6 +68,19 @@
         "installHint": {
             "type": "string",
             "description": "Shell command or URL to install a missing runner CLI"
+        },
+        "conversationId": {
+            "type": "string",
+            "description": "Conversation thread this run belongs to"
+        },
+        "sessionId": {
+            "type": "string",
+            "description": "Runner-native session handle for resuming"
+        },
+        "turnIndex": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Index within the conversation (0 = initial, 1 = first reply, etc.)"
         }
     },
     "required": [

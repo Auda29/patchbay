@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 import { once } from 'events';
 import { Command } from 'commander';
-import { Store, Project, loadConfig, saveConfig, maskApiKey } from '@patchbay/core';
+import { Store, Project, Run, loadConfig, saveConfig, maskApiKey } from '@patchbay/core';
 import { createConfiguredOrchestrator, createServer } from '@patchbay/server';
 import { prompt } from 'enquirer';
+import * as readline from 'readline';
 
 const program = new Command();
 const store = new Store();
@@ -155,6 +156,37 @@ taskCmd
         }
     });
 
+/** Ask the user for a reply on stdin (TTY only). Returns empty string if skipped. */
+function askReply(question: string): Promise<string> {
+    if (!process.stdin.isTTY) return Promise.resolve('');
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    return new Promise<string>((resolve) => {
+        console.log(`\nQuestion: "${question}"`);
+        rl.question('Reply (Enter to skip): ', (answer) => {
+            rl.close();
+            resolve(answer.trim());
+        });
+    });
+}
+
+/** Print run result and return whether it needs a reply. */
+function printRunResult(run: Run): boolean {
+    console.log(`Run finished with status: ${run.status}`);
+    console.log(`Summary: ${run.summary ?? '(no summary)'}`);
+    if (run.status === 'failed') {
+        if (run.logs?.length) {
+            console.error(`\nLogs:\n${run.logs.join('\n')}`);
+        }
+        if (run.installHint) {
+            console.log(`\nInstall hint: ${run.installHint}`);
+        }
+        process.exitCode = 1;
+    }
+    // Check if the task is now awaiting_input (runner asked a question)
+    const taskStatus = store.getTask(run.taskId)?.status;
+    return taskStatus === 'awaiting_input' && !!run.conversationId;
+}
+
 program
     .command('run <taskId> <runnerId>')
     .description('Dispatch a task to a runner (bash, http, cursor, claude-code, codex, gemini, etc.)')
@@ -168,20 +200,55 @@ program
         const orchestrator = getOrchestrator();
         console.log(`Dispatching Task ${taskId} to Runner '${runnerId}'...`);
         try {
-            const run = await orchestrator.dispatchTask(taskId, runnerId);
-            console.log(`Run finished with status: ${run.status}`);
-            console.log(`Summary: ${run.summary ?? '(no summary)'}`);
-            if (run.status === 'failed') {
-                if (run.logs?.length) {
-                    console.error(`\nLogs:\n${run.logs.join('\n')}`);
-                }
-                if (run.installHint) {
-                    console.log(`\nInstall hint: ${run.installHint}`);
-                }
-                process.exitCode = 1;
+            let run = await orchestrator.dispatchTask(taskId, runnerId);
+            let needsReply = printRunResult(run);
+
+            // Interactive follow-up loop: if the runner asks a question, prompt the user
+            while (needsReply && run.conversationId) {
+                const question = run.summary ?? 'The runner is asking for more information.';
+                const reply = await askReply(question);
+                if (!reply) break;
+
+                console.log(`\nContinuing conversation...`);
+                run = await orchestrator.continueConversation(run.conversationId, reply, runnerId);
+                needsReply = printRunResult(run);
             }
         } catch (err: any) {
             console.error(`Run failed:`, err.message);
+            process.exitCode = 1;
+        }
+    });
+
+program
+    .command('reply <conversationId> <message>')
+    .description('Continue a conversation by replying to a runner\'s question')
+    .option('--runner <runnerId>', 'Runner to use for the reply')
+    .action(async (conversationId, message, opts) => {
+        if (!store.isInitialized) {
+            console.error('Not initialized.');
+            process.exitCode = 1;
+            return;
+        }
+
+        const orchestrator = getOrchestrator();
+
+        // Determine runner from the last run in the conversation
+        const allRuns = store.listRuns();
+        const threadRuns = allRuns.filter(r => r.conversationId === conversationId);
+        if (threadRuns.length === 0) {
+            console.error(`No runs found for conversation ${conversationId}`);
+            process.exitCode = 1;
+            return;
+        }
+        const lastRun = threadRuns.sort((a, b) => (b.turnIndex ?? 0) - (a.turnIndex ?? 0))[0];
+        const runnerId = opts.runner ?? lastRun.runner;
+
+        console.log(`Continuing conversation ${conversationId} with runner '${runnerId}'...`);
+        try {
+            const run = await orchestrator.continueConversation(conversationId, message, runnerId);
+            printRunResult(run);
+        } catch (err: any) {
+            console.error(`Reply failed:`, err.message);
             process.exitCode = 1;
         }
     });

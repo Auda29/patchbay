@@ -1,6 +1,7 @@
 import { Store } from './store';
-import { Runner } from './runner';
+import { Runner, RunnerInput, RunnerOutput, ConversationTurn } from './runner';
 import { Run, Task } from './types';
+import { randomUUID } from 'crypto';
 
 export class Orchestrator {
     private store: Store;
@@ -33,13 +34,14 @@ export class Orchestrator {
         const runner = this.runners.get(runnerId);
         if (!runner) throw new Error(`Runner ${runnerId} not registered.`);
 
-        if (task.status !== 'open' && task.status !== 'blocked') {
+        if (task.status !== 'open' && task.status !== 'blocked' && task.status !== 'awaiting_input') {
             throw new Error(`Cannot run task in status ${task.status}.`);
         }
 
         task.status = 'in_progress';
         this.store.saveTask(task);
 
+        const conversationId = randomUUID();
         const startTimeLabel = new Date().toISOString();
         const runId = `${startTimeLabel.replace(/[:.]/g, '-')}-${taskId}-${runnerId}`;
         const run: Run = {
@@ -47,7 +49,9 @@ export class Orchestrator {
             taskId,
             runner: runnerId,
             startTime: startTimeLabel,
-            status: 'running'
+            status: 'running',
+            conversationId,
+            turnIndex: 0,
         };
         this.store.saveRun(run);
 
@@ -59,7 +63,7 @@ export class Orchestrator {
         return { task, runner, run, repoPath, projectRules, contextFiles };
     }
 
-    private buildInput(taskId: string, task: Task, repoPath: string, projectRules: string | undefined, contextFiles: string[]) {
+    private buildInput(taskId: string, task: Task, repoPath: string, projectRules: string | undefined, contextFiles: string[]): RunnerInput {
         return {
             taskId,
             repoPath,
@@ -71,9 +75,12 @@ export class Orchestrator {
         };
     }
 
-    private finalize(run: Run, task: Task, output: import('./runner').RunnerOutput) {
-        if (output.status === 'blocked') {
-            run.status = 'completed'; // The run finished trying, yielding a blocker
+    private finalize(run: Run, task: Task, output: RunnerOutput) {
+        if (output.status === 'awaiting_input') {
+            run.status = 'completed';
+            task.status = 'awaiting_input';
+        } else if (output.status === 'blocked') {
+            run.status = 'completed';
             task.status = 'blocked';
         } else {
             run.status = output.status;
@@ -87,6 +94,7 @@ export class Orchestrator {
         run.blockers = output.blockers;
         run.suggestedNextSteps = output.suggestedNextSteps;
         run.installHint = output.installHint;
+        if (output.sessionId) run.sessionId = output.sessionId;
     }
 
     private setFailed(run: Run, task: Task, err: any) {
@@ -95,6 +103,27 @@ export class Orchestrator {
         run.summary = `Runner error: ${err.message || String(err)}`;
         run.logs = [err.message, err.stack];
         task.status = 'open';
+    }
+
+    /** Build conversation history from previous runs in the same thread. */
+    private buildConversationHistory(runs: Run[]): ConversationTurn[] {
+        const sorted = [...runs].sort((a, b) => (a.turnIndex ?? 0) - (b.turnIndex ?? 0));
+        const turns: ConversationTurn[] = [];
+
+        for (const r of sorted) {
+            const content = r.logs?.join('') ?? r.summary ?? '';
+            if ((r.turnIndex ?? 0) > 0) {
+                // Even turns after the first are user replies (goal was stored as summary prefix)
+                turns.push({ role: 'user', content: r.summary ?? '', timestamp: r.startTime });
+            }
+            turns.push({
+                role: 'assistant',
+                content,
+                timestamp: r.endTime ?? r.startTime,
+            });
+        }
+
+        return turns;
     }
 
     async dispatchTask(taskId: string, runnerId: string): Promise<Run> {
@@ -128,6 +157,77 @@ export class Orchestrator {
                 this.store.saveRun(run);
                 this.store.saveTask(task);
             });
+
+        return run;
+    }
+
+    /** Continue an existing conversation by replying to a runner's question. */
+    async continueConversation(conversationId: string, userReply: string, runnerId: string): Promise<Run> {
+        if (!this.store.isInitialized) {
+            throw new Error('Patchbay is not initialized.');
+        }
+
+        // Find all runs in this conversation thread
+        const allRuns = this.store.listRuns();
+        const threadRuns = allRuns
+            .filter(r => r.conversationId === conversationId)
+            .sort((a, b) => (a.turnIndex ?? 0) - (b.turnIndex ?? 0));
+
+        const lastRun = threadRuns[threadRuns.length - 1];
+        if (!lastRun) throw new Error(`No runs found for conversation ${conversationId}`);
+
+        const task = this.store.getTask(lastRun.taskId);
+        if (!task) throw new Error(`Task ${lastRun.taskId} not found.`);
+
+        const runner = this.runners.get(runnerId);
+        if (!runner) throw new Error(`Runner ${runnerId} not registered.`);
+
+        task.status = 'in_progress';
+        this.store.saveTask(task);
+
+        const project = this.store.getProject();
+        const repoPath = project.repoPath || process.cwd();
+        const projectRules = project.rules ? project.rules.join('\n') : undefined;
+        const contextFiles = this.store.getContextFiles();
+
+        const turnIndex = (lastRun.turnIndex ?? 0) + 1;
+        const startTimeLabel = new Date().toISOString();
+        const runId = `${startTimeLabel.replace(/[:.]/g, '-')}-${lastRun.taskId}-${runnerId}-t${turnIndex}`;
+
+        const run: Run = {
+            id: runId,
+            taskId: lastRun.taskId,
+            runner: runnerId,
+            startTime: startTimeLabel,
+            status: 'running',
+            conversationId,
+            turnIndex,
+        };
+        this.store.saveRun(run);
+
+        const input: RunnerInput = {
+            taskId: lastRun.taskId,
+            repoPath,
+            branch: 'main',
+            affectedFiles: task.affectedFiles,
+            contextFiles,
+            projectRules,
+            goal: userReply,
+            conversationId,
+            resumeSessionId: lastRun.sessionId,
+            previousTurns: this.buildConversationHistory(threadRuns),
+        };
+
+        try {
+            const output = await runner.execute(input);
+            this.finalize(run, task, output);
+            if (output.sessionId) run.sessionId = output.sessionId;
+        } catch (err: any) {
+            this.setFailed(run, task, err);
+        }
+
+        this.store.saveRun(run);
+        this.store.saveTask(task);
 
         return run;
     }

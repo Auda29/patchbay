@@ -20,7 +20,7 @@ export interface Task {
     title: string;
     description?: string;
     goal?: string;
-    status: 'open' | 'in_progress' | 'blocked' | 'review' | 'done';
+    status: 'open' | 'in_progress' | 'blocked' | 'review' | 'done' | 'awaiting_input';
     owner?: string;
     affectedFiles?: string[];
     acceptanceCriteria?: string[];
@@ -41,6 +41,12 @@ export interface Run {
     suggestedNextSteps?: string[];
     /** Shell command to install the missing runner CLI (propagated from RunnerOutput). */
     installHint?: string;
+    /** Conversation thread this run belongs to. */
+    conversationId?: string;
+    /** Runner-native session handle for resuming (e.g. claude session UUID). */
+    sessionId?: string;
+    /** Index within the conversation (0 = initial, 1 = first reply, etc.). */
+    turnIndex?: number;
 }
 
 export interface Decision {

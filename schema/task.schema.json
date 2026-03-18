@@ -27,7 +27,8 @@
                 "in_progress",
                 "blocked",
                 "review",
-                "done"
+                "done",
+                "awaiting_input"
             ],
             "default": "open",
             "description": "Current status of the task"

@@ -2,6 +2,7 @@ import { Runner, RunnerInput, RunnerOutput, RunnerAuth } from '@patchbay/core';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { spawn } from 'child_process';
+import { randomUUID } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -9,6 +10,14 @@ const execAsync = promisify(exec);
 
 export function buildPrompt(input: RunnerInput): string {
     const parts: string[] = [];
+
+    // Inject previous conversation turns for context (fallback for non-resume runners)
+    if (input.previousTurns?.length) {
+        const turnLines = input.previousTurns.map(
+            t => `### ${t.role} (${t.timestamp})\n${t.content}`
+        );
+        parts.push(`## Previous Conversation\n${turnLines.join('\n\n')}`);
+    }
 
     if (input.projectRules) {
         parts.push(`## Project Rules\n${input.projectRules}`);
@@ -32,6 +41,29 @@ export function buildPrompt(input: RunnerInput): string {
     return parts.join('\n\n');
 }
 
+/** Detect whether runner output is a clarifying question rather than real work. */
+function detectQuestion(output: string): boolean {
+    const trimmed = output.trim();
+    // Long outputs are real work, not questions
+    if (trimmed.length > 1500) return false;
+    // Ends with a question mark
+    if (trimmed.endsWith('?')) return true;
+    // Common clarification patterns
+    return /(?:which|could you|can you|do you want|please (?:provide|specify|choose|clarify))/i.test(trimmed);
+}
+
+/** Extract the actual question from the output. */
+function extractQuestion(output: string): string {
+    const lines = output.trim().split('\n');
+    // Find the last line ending with '?'
+    for (let i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].trim().endsWith('?')) {
+            return lines[i].trim();
+        }
+    }
+    return output.trim();
+}
+
 export class ClaudeCodeRunner implements Runner {
     name = 'claude-code';
 
@@ -52,21 +84,30 @@ export class ClaudeCodeRunner implements Runner {
             };
         }
 
-        const prompt = buildPrompt(input);
+        // When resuming a conversation, use the user's reply as the prompt directly.
+        // Otherwise build the full structured prompt from task context.
+        const prompt = input.resumeSessionId
+            ? input.goal
+            : buildPrompt(input);
         logs.push(`Prompt built (${prompt.length} chars)`);
 
         const env = this.auth?.mode === 'apiKey'
             ? { ...process.env, ANTHROPIC_API_KEY: this.auth.apiKey }
             : process.env;
 
+        // Pre-assign a session ID so we can resume later.
+        // If resuming an existing session, use --resume instead.
+        const sessionId = input.resumeSessionId ?? randomUUID();
+
         return new Promise<RunnerOutput>((resolve) => {
             const isWin = process.platform === 'win32';
-            // With shell:true on Windows, cmd.exe resolves extensions automatically — no .cmd suffix needed.
-            // Without shell on Linux/macOS, spawn finds the binary directly.
             const bin = 'claude';
-            // On Windows, .cmd files require shell:true. Pass prompt via stdin
-            // to avoid cmd.exe word-splitting the prompt when passed as an argument.
-            const child = spawn(bin, ['-p'], {
+
+            const args = input.resumeSessionId
+                ? ['--resume', input.resumeSessionId, '-p']
+                : ['--session-id', sessionId, '-p'];
+
+            const child = spawn(bin, args, {
                 cwd: input.repoPath,
                 env,
                 shell: isWin,
@@ -123,12 +164,27 @@ export class ClaudeCodeRunner implements Runner {
                 if (settled) return;
                 settled = true;
                 clearTimeout(timeout);
+
+                const fullOutput = logs.join('');
+
                 if (code === 0) {
-                    resolve({
-                        status: 'completed',
-                        summary: firstLine ?? 'Claude Code run completed.',
-                        logs,
-                    });
+                    const isQuestion = detectQuestion(fullOutput);
+                    if (isQuestion) {
+                        resolve({
+                            status: 'awaiting_input',
+                            summary: firstLine ?? 'Runner is asking a clarifying question.',
+                            question: extractQuestion(fullOutput),
+                            sessionId,
+                            logs,
+                        });
+                    } else {
+                        resolve({
+                            status: 'completed',
+                            summary: firstLine ?? 'Claude Code run completed.',
+                            sessionId,
+                            logs,
+                        });
+                    }
                 } else {
                     logs.push(`EXIT CODE: ${code ?? 'null'}`);
                     resolve({
