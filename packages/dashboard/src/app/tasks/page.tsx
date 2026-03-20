@@ -7,6 +7,14 @@ import { NewTaskModal } from '@/components/NewTaskModal';
 import { DispatchDialog } from '@/components/DispatchDialog';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
+const columns = [
+    { id: 'open', title: 'Open', color: 'border-surface-600' },
+    { id: 'in_progress', title: 'In Progress', color: 'border-blue-500' },
+    { id: 'awaiting_input', title: 'Awaiting Reply', color: 'border-purple-500' },
+    { id: 'blocked', title: 'Blocked', color: 'border-red-500' },
+    { id: 'review', title: 'Review', color: 'border-yellow-500' },
+    { id: 'done', title: 'Done', color: 'border-green-500' },
+] as const;
 
 export default function TasksBoard() {
     const { data, error, isLoading, mutate } = useSWR('/api/state', fetcher, { refreshInterval: 2000 });
@@ -15,20 +23,6 @@ export default function TasksBoard() {
     const [statusMenu, setStatusMenu] = useState<string | null>(null);
     const [statusMenuPlacement, setStatusMenuPlacement] = useState<'bottom' | 'top'>('bottom');
     const statusButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-
-    if (isLoading) return <div className="p-8 text-surface-400">Loading tasks...</div>;
-    if (error) return <div className="p-8 text-red-400">Error connecting to backend</div>;
-
-    const tasks: Task[] = data?.tasks || [];
-
-    const columns = [
-        { id: 'open', title: 'Open', color: 'border-surface-600' },
-        { id: 'in_progress', title: 'In Progress', color: 'border-blue-500' },
-        { id: 'awaiting_input', title: 'Awaiting Reply', color: 'border-purple-500' },
-        { id: 'blocked', title: 'Blocked', color: 'border-red-500' },
-        { id: 'review', title: 'Review', color: 'border-yellow-500' },
-        { id: 'done', title: 'Done', color: 'border-green-500' },
-    ];
 
     const changeStatus = async (taskId: string, newStatus: string) => {
         setStatusMenu(null);
@@ -61,6 +55,11 @@ export default function TasksBoard() {
             spaceBelow < estimatedMenuHeight && spaceAbove > spaceBelow ? 'top' : 'bottom'
         );
     }, [statusMenu, columns.length]);
+
+    if (isLoading) return <div className="p-8 text-surface-400">Loading tasks...</div>;
+    if (error) return <div className="p-8 text-red-400">Error connecting to backend</div>;
+
+    const tasks: Task[] = data?.tasks || [];
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500 h-full flex flex-col">
