@@ -36,7 +36,8 @@ export class CodexRunner implements Runner {
         return new Promise<RunnerOutput>((resolve) => {
             const isWin = process.platform === 'win32';
             const bin = 'codex';
-            const child = spawn(bin, ['exec'], {
+            const args = ['exec', '--skip-git-repo-check'];
+            const child = spawn(bin, args, {
                 cwd: input.repoPath,
                 env,
                 shell: isWin,
