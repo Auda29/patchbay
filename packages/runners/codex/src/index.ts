@@ -5,6 +5,54 @@ import { spawn } from 'child_process';
 import { buildPrompt } from '@patchbay/runner-claude-code';
 
 const execAsync = promisify(exec);
+const codexNoisePatterns = [
+    /^reading prompt from stdin/i,
+    /^openai codex\b/i,
+    /^-+$/,
+    /^(workdir|model|provider|approval|sandbox|reasoning effort|reasoning summaries|session id):/i,
+    /^(user|codex|exec)$/i,
+    /^mcp:/i,
+    /^mcp startup:/i,
+    /^tokens used$/i,
+    /^\d[\d.,]*$/,
+    /^".*"\s+in\s+.+$/i,
+    /^(succeeded|exited)\s+in\s+/i,
+    /^prompt built \(\d+ chars\)$/i,
+    /^verzeichnis:/i,
+    /^(mode|----)\b/i,
+];
+
+function isCodexNoiseLine(line: string): boolean {
+    const trimmed = line.trim();
+    if (!trimmed) return true;
+    return codexNoisePatterns.some((pattern) => pattern.test(trimmed));
+}
+
+function extractCodexSummary(fullOutput: string, fallback?: string): string {
+    const lines = fullOutput.split(/\r?\n/);
+    const summaryLines: string[] = [];
+
+    for (let index = lines.length - 1; index >= 0; index -= 1) {
+        const line = lines[index].trim();
+        if (!line) {
+            if (summaryLines.length > 0) break;
+            continue;
+        }
+
+        if (isCodexNoiseLine(line)) {
+            if (summaryLines.length > 0) break;
+            continue;
+        }
+
+        summaryLines.push(line);
+    }
+
+    if (summaryLines.length === 0) {
+        return fallback ?? 'Codex run completed.';
+    }
+
+    return summaryLines.reverse().join('\n');
+}
 
 export class CodexRunner implements Runner {
     name = 'codex';
@@ -95,9 +143,10 @@ export class CodexRunner implements Runner {
                 settled = true;
                 clearTimeout(timeout);
                 if (code === 0) {
+                    const fullOutput = logs.join('');
                     resolve({
                         status: 'completed',
-                        summary: firstLine ?? 'Codex run completed.',
+                        summary: extractCodexSummary(fullOutput, firstLine),
                         logs,
                     });
                 } else {
