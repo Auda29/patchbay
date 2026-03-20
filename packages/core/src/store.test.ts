@@ -49,17 +49,15 @@ describe('Store', () => {
             store.init({ name: 'Test', goal: 'Test goal' });
         });
 
-        it('createTask returns a task with status open and a TASK- id', () => {
+        it('createTask returns a task with status open and a readable TASK- id', () => {
             const task = store.createTask('Write tests', 'Cover core logic');
             expect(task.status).toBe('open');
             expect(task.title).toBe('Write tests');
-            expect(task.id).toMatch(/^TASK-/);
+            expect(task.id).toMatch(/^TASK-write-tests-[a-f0-9]{8}$/);
         });
 
-        it('listTasks returns all created tasks', async () => {
+        it('listTasks returns all created tasks', () => {
             const a = store.createTask('Task A', 'Goal A');
-            // Brief pause to ensure distinct Date.now() values for the file names
-            await new Promise(r => setTimeout(r, 2));
             const b = store.createTask('Task B', 'Goal B');
             const ids = store.listTasks().map(t => t.id);
             expect(ids).toContain(a.id);

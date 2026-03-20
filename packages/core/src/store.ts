@@ -1,9 +1,20 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'yaml';
+import { randomUUID } from 'crypto';
 import Ajv, { ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
 import { Project, Task, Run, Decision, AgentProfile } from './types';
+
+function slugifyTaskTitle(title: string): string {
+    const slug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 48);
+
+    return slug || 'task';
+}
 
 export class Store {
     private baseDir: string;
@@ -168,7 +179,9 @@ export class Store {
     }
 
     createTask(title: string, goal: string, affectedFiles?: string[]): Task {
-        const id = `TASK-${Date.now()}`;
+        const slug = slugifyTaskTitle(title);
+        const suffix = randomUUID().slice(0, 8);
+        const id = `TASK-${slug}-${suffix}`;
         const task: Task = { id, title, goal, affectedFiles, status: 'open' };
         this.saveTask(task);
         return task;
