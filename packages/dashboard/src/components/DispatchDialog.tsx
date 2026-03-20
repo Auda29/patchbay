@@ -208,7 +208,7 @@ export function DispatchDialog({ open, onClose, taskId, taskTitle, taskStatus, o
                             onChange={e => setRunnerId(e.target.value)}
                         >
                             {agents.map(a => (
-                                <option key={a.id} value={a.id} disabled={a.available === false}>
+                                <option key={a.id} value={a.id}>
                                     {a.id} — {a.role}{a.available === false ? ' (not installed)' : ''}
                                 </option>
                             ))}

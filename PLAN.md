@@ -716,3 +716,25 @@ Wenn ein CLI-Runner eine Rückfrage stellt, endete der Run bisher sofort — der
 - [x] `packages/dashboard/src/app/api/reply/route.ts` — neuer Endpoint `POST /api/reply`: ruft `orchestrator.continueConversation()` auf
 - [x] `packages/dashboard/src/components/DispatchDialog.tsx` — Reply-Modus wenn `taskStatus === 'awaiting_input'`: zeigt Frage des Runners, Textarea für Antwort, "Send Reply"-Button; ruft `/api/reply` auf (oder sendet postMessage im VS Code Webview-Kontext)
 - [x] `packages/dashboard/src/app/tasks/page.tsx` — neue Kanban-Spalte "Awaiting Reply" (lila); Dispatch-Button auch für `awaiting_input`-Tasks sichtbar; `taskStatus` an `DispatchDialog` übergeben
+
+---
+
+## Phase K: Projekt-Import für bestehende Repos
+
+Bestehende Projekte können aktuell nur manuell per `patchbay init` initialisiert werden — ohne Bezug zum vorhandenen Code. Phase K macht den Onboarding-Flow intelligent: Auto-Erkennung des Projekts + Context-Bootstrap aus README und CI-Config, plus eine "Initialize Patchbay Workflow"-Option direkt im Wintermute Start Panel.
+
+### K1: Auto-Detect in `patchbay init`
+
+- [ ] `packages/cli/src/index.ts` — `detectProjectMeta()` Helfer: liest `package.json` (name, description), `pyproject.toml`, `Cargo.toml`, `go.mod` für Projektname + Tech-Stack; `.git/config` für Repo-URL
+- [ ] `packages/cli/src/index.ts` — `patchbay init` interaktiv: erkannte Werte als Defaults in Enquirer-Prompts vorausfüllen statt leerer Eingabe
+- [ ] `packages/cli/src/index.ts` — `patchbay init --yes`: erkannte Werte direkt übernehmen ohne Prompts
+
+### K2: Context-Bootstrap
+
+- [ ] `packages/cli/src/index.ts` — nach `init`: wenn `README.md` vorhanden, Inhalt als Startervorlage nach `context/architecture.md` kopieren (mit Hinweis-Header)
+- [ ] `packages/cli/src/index.ts` — CI-Config erkennen (`.github/workflows/`, `.gitlab-ci.yml`, `Makefile`) + Test-Setup (`jest.config.*`, `vitest.config.*`, `pytest.ini`) → Kurznotizen in `context/conventions.md` eintragen
+
+### K3: Wintermute — "Initialize"-Command im Start Panel
+
+- [ ] `extensions/wntrmte-workflow/src/extension.ts` — `wntrmte.initializePatchbay`: startet `patchbay init` mit auto-detected Werten (`--name <detected> --tech-stack <detected> --yes`) im integrierten Terminal; nur sichtbar wenn kein `.project-agents/` vorhanden
+- [ ] `extensions/wntrmte-workflow/src/providers/DashboardPanel.ts` — Start Panel Setup-State: "Initialize Patchbay Workflow"-Button neben "Setup Workspace" anzeigen wenn Workspace geöffnet aber kein `.project-agents/`
