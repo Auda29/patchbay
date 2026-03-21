@@ -56,6 +56,38 @@ describe('patchbay init --yes', () => {
         expect(projectYml).toContain('Build a CLI tool');
     });
 
+    it('uses auto-detected values and bootstraps context files in --yes mode', () => {
+        if (!cliAvailable()) return;
+
+        fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
+            name: 'detected-repo',
+            description: 'Auto-detected goal',
+            devDependencies: { typescript: '^5.0.0' }
+        }, null, 2));
+        fs.writeFileSync(path.join(tmpDir, 'tsconfig.json'), '{}');
+        fs.writeFileSync(path.join(tmpDir, 'README.md'), '# Detected Repo\n\nImported context.\n');
+        fs.mkdirSync(path.join(tmpDir, '.github', 'workflows'), { recursive: true });
+        fs.writeFileSync(path.join(tmpDir, '.github', 'workflows', 'build.yml'), 'name: Build\n');
+        fs.writeFileSync(path.join(tmpDir, 'vitest.config.ts'), 'export default {}\n');
+
+        execSync(
+            `node "${CLI_BIN}" init --yes`,
+            { cwd: tmpDir, stdio: 'pipe' }
+        );
+
+        const projectYml = fs.readFileSync(path.join(tmpDir, '.project-agents', 'project.yml'), 'utf-8');
+        const architecture = fs.readFileSync(path.join(tmpDir, '.project-agents', 'context', 'architecture.md'), 'utf-8');
+        const conventions = fs.readFileSync(path.join(tmpDir, '.project-agents', 'context', 'conventions.md'), 'utf-8');
+
+        expect(projectYml).toContain('detected-repo');
+        expect(projectYml).toContain('Auto-detected goal');
+        expect(projectYml).toContain('- Node.js');
+        expect(projectYml).toContain('- TypeScript');
+        expect(architecture).toContain('# Detected Repo');
+        expect(conventions).toContain('CI uses GitHub Actions (build.yml).');
+        expect(conventions).toContain('Tests are configured with Vitest.');
+    });
+
     it('exits with error when already initialized', () => {
         if (!cliAvailable()) return;
 

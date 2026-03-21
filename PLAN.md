@@ -717,6 +717,14 @@ Wenn ein CLI-Runner eine Rückfrage stellt, endete der Run bisher sofort — der
 - [x] `packages/dashboard/src/components/DispatchDialog.tsx` — Reply-Modus wenn `taskStatus === 'awaiting_input'`: zeigt Frage des Runners, Textarea für Antwort, "Send Reply"-Button; ruft `/api/reply` auf (oder sendet postMessage im VS Code Webview-Kontext)
 - [x] `packages/dashboard/src/app/tasks/page.tsx` — neue Kanban-Spalte "Awaiting Reply" (lila); Dispatch-Button auch für `awaiting_input`-Tasks sichtbar; `taskStatus` an `DispatchDialog` übergeben
 
+### Post-J: Qualitätsverbesserungen
+
+- [x] `packages/core/src/store.ts` — `createTask()` generiert IDs als Slug aus Titel + UUID-Suffix (`my-task-abc123`) statt reiner UUID — lesbar, git-diff-freundlich
+- [x] `packages/runners/codex/src/index.ts` — Noise-Filtering: irrelevante Zeilen aus Codex-Output herausfiltern; `extractSummary()` extrahiert sinnvollen Summary aus Rohausgabe
+- [x] `packages/runners/codex/src/index.ts` — `--full-auto` Flag ergänzt (neben `--skip-git-repo-check`)
+- [x] `packages/dashboard/src/components/DispatchDialog.tsx` — Agents nach Präferenz sortiert; dynamische Menüplatzierung je nach verfügbarem Bildschirmplatz
+- [x] `packages/dashboard/src/app/tasks/page.tsx` — Status-Menü mit dynamischer Positionierung + z-index-Verwaltung
+
 ---
 
 ## Phase K: Projekt-Import für bestehende Repos

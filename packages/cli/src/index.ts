@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 import { once } from 'events';
+import * as path from 'path';
 import { Command } from 'commander';
 import { Store, Project, Run, loadConfig, saveConfig, maskApiKey } from '@patchbay/core';
 import { createConfiguredOrchestrator, createServer } from '@patchbay/server';
 import { prompt } from 'enquirer';
 import * as readline from 'readline';
+import { bootstrapContextFiles, detectProjectMeta } from './init-meta';
 
 const program = new Command();
 const store = new Store();
@@ -32,10 +34,11 @@ program
         }
 
         try {
+            const detected = detectProjectMeta(process.cwd());
             const defaults = {
-                name: 'My Patchbay Project',
-                goal: 'To build awesome software',
-                techStack: 'Node.js, TypeScript'
+                name: detected.name || path.basename(process.cwd()) || 'My Patchbay Project',
+                goal: detected.goal || 'To build awesome software',
+                techStack: detected.techStack.join(', ') || 'Node.js, TypeScript'
             };
 
             let name: string;
@@ -80,6 +83,7 @@ program
             };
 
             store.init(newProject);
+            bootstrapContextFiles(process.cwd(), detected);
             console.log('\nSuccess! Patchbay initialized in .project-agents/');
         } catch (err: any) {
             console.error('\nInitialization failed:', err.message || err);
