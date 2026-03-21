@@ -727,22 +727,20 @@ Wenn ein CLI-Runner eine Rückfrage stellt, endete der Run bisher sofort — der
 
 ---
 
-## Phase K: Projekt-Import für bestehende Repos
+## Phase K: Projekt-Import für bestehende Repos — DONE
 
 Bestehende Projekte können aktuell nur manuell per `patchbay init` initialisiert werden — ohne Bezug zum vorhandenen Code. Phase K macht den Onboarding-Flow intelligent: Auto-Erkennung des Projekts + Context-Bootstrap aus README und CI-Config, plus eine "Initialize Patchbay Workflow"-Option direkt im Wintermute Start Panel.
 
 ### K1: Auto-Detect in `patchbay init`
 
-- [ ] `packages/cli/src/index.ts` — `detectProjectMeta()` Helfer: liest `package.json` (name, description), `pyproject.toml`, `Cargo.toml`, `go.mod` für Projektname + Tech-Stack; `.git/config` für Repo-URL
-- [ ] `packages/cli/src/index.ts` — `patchbay init` interaktiv: erkannte Werte als Defaults in Enquirer-Prompts vorausfüllen statt leerer Eingabe
-- [ ] `packages/cli/src/index.ts` — `patchbay init --yes`: erkannte Werte direkt übernehmen ohne Prompts
+- [x] `packages/cli/src/init-meta.ts` — `detectProjectMeta()`: liest `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod` für Projektname + Tech-Stack; `.git/config` für Repo-URL
+- [x] `packages/cli/src/index.ts` — `patchbay init`: erkannte Werte als Defaults vorausfüllen; `--yes` übernimmt erkannte Werte ohne Prompts
 
 ### K2: Context-Bootstrap
 
-- [ ] `packages/cli/src/index.ts` — nach `init`: wenn `README.md` vorhanden, Inhalt als Startervorlage nach `context/architecture.md` kopieren (mit Hinweis-Header)
-- [ ] `packages/cli/src/index.ts` — CI-Config erkennen (`.github/workflows/`, `.gitlab-ci.yml`, `Makefile`) + Test-Setup (`jest.config.*`, `vitest.config.*`, `pytest.ini`) → Kurznotizen in `context/conventions.md` eintragen
+- [x] `packages/cli/src/init-meta.ts` — `bootstrapContextFiles()`: `README.md` → `context/architecture.md`; CI-Config + Test-Setup → `context/conventions.md`
+- [x] `packages/cli/src/index.ts` — `bootstrapContextFiles()` nach `init` aufgerufen
 
 ### K3: Wintermute — "Initialize"-Command im Start Panel
 
-- [ ] `extensions/wntrmte-workflow/src/extension.ts` — `wntrmte.initializePatchbay`: startet `patchbay init` mit auto-detected Werten (`--name <detected> --tech-stack <detected> --yes`) im integrierten Terminal; nur sichtbar wenn kein `.project-agents/` vorhanden
-- [ ] `extensions/wntrmte-workflow/src/providers/DashboardPanel.ts` — Start Panel Setup-State: "Initialize Patchbay Workflow"-Button neben "Setup Workspace" anzeigen wenn Workspace geöffnet aber kein `.project-agents/`
+- [x] `extensions/wntrmte-workflow/src/extension.ts` — `wntrmte.initializePatchbay` Command: Guard wenn `.project-agents/` schon vorhanden; startet `patchbay init --yes` mit auto-detected Werten im integrierten Terminal; "Initialize Patchbay Workflow"-Button im Start Panel

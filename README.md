@@ -224,6 +224,8 @@ Patchbay thinks from the outside in (external dashboard). Wintermute thinks from
 - [x] Phase H: Runner install-on-demand — `installHint` in all CLI runners, binary availability check, "Install in Terminal" in DispatchDialog and Wintermute error dialog
 - [x] Phase I: Windows runner spawn fix — `shell: true` + stdin piping on Windows (no `.cmd` suffix, cmd.exe resolves automatically); `.yml` task file support in Wintermute FileStore
 - [x] Phase J: Multi-turn runner conversations — `awaiting_input` status, `continueConversation()` in Orchestrator, `--resume` session in claude-code runner, `patchbay reply` CLI command, reply UX in Wintermute (InputBox) and Dashboard (DispatchDialog reply mode, "Awaiting Reply" Kanban column), `/api/reply` endpoint
+- [x] Post-J: Task IDs as readable slugs (`my-task-abc123`), Codex noise filtering + summary extraction, Codex `--full-auto` flag, DispatchDialog agent sorting + dynamic menu placement
+- [x] Phase K: Project import — `patchbay init` auto-detects project name/tech-stack from `package.json`/`pyproject.toml`/`Cargo.toml`/`go.mod`, bootstraps `context/architecture.md` from README and `context/conventions.md` from CI config
 
 See [PLAN.md](PLAN.md) for the detailed technical roadmap.
 
