@@ -57,8 +57,9 @@ function detectQuestion(output: string): boolean {
     if (trimmed.length > 1500) return false;
     // Ends with a question mark
     if (trimmed.endsWith('?')) return true;
-    // Common clarification patterns
-    return /(?:which|could you|can you|do you want|please (?:provide|specify|choose|clarify))/i.test(trimmed);
+
+    // Common clarification and approval-request patterns
+    return /(?:which|could you|can you|do you want|please (?:provide|specify|choose|clarify|approve)|need (?:your )?permission|waiting for (?:your )?approval|may i|approve (?:the|this) (?:edit|change)|permission to edit)/i.test(trimmed);
 }
 
 /** Extract the actual question from the output. */
@@ -70,6 +71,16 @@ function extractQuestion(output: string): string {
             return lines[i].trim();
         }
     }
+
+    // Fall back to the last non-empty line that looks like an approval request.
+    for (let i = lines.length - 1; i >= 0; i--) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        if (/(?:please approve|need (?:your )?permission|waiting for (?:your )?approval|may i|approve (?:the|this) (?:edit|change)|permission to edit)/i.test(line)) {
+            return line;
+        }
+    }
+
     return output.trim();
 }
 
