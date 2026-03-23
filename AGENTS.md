@@ -26,21 +26,26 @@ Wintermute (`wntrmte`) is a minimalist VS Code distribution that serves as the *
 ```text
 patchbay/
 ├── schema/           # .project-agents/ JSON Schemas
+├── docs/
+│   └── custom-connector.md  # How to build a custom Connector
 ├── packages/
 │   ├── core/         # Orchestrator, Store (ajv-validated), Runner + AgentConnector interfaces, Types
+│   │   └── src/
+│   │       ├── connector.ts  # AgentConnector, AgentSession, AgentEvent, ConnectorRegistry, BaseSession
+│   │       └── ...
 │   ├── cli/          # patchbay init, task, run, reply, auth, serve
 │   ├── dashboard/    # Next.js + Tailwind dashboard (THE APP)
-│   │   └── src/app/api/  # API routes: state, dispatch, reply, agents, events (SSE)
+│   │   └── src/app/api/  # API routes: state, dispatch, reply, agents, events (SSE), connect, agent-input, connectors
 │   ├── server/       # Standalone HTTP server (@patchbay/server)
-│   │   └── src/      # createServer(), all routes including streaming endpoints
+│   │   └── src/      # createServer(), all routes including streaming + connector endpoints
 │   └── runners/
 │       ├── bash/         # Shell command execution (batch)
-│       ├── http/         # GET URL fetch (batch)
+│       ├── http/         # GET URL fetch (batch) + HttpConnector (OpenAI-compatible APIs)
 │       ├── cursor/       # File-based handoff (batch)
-│       ├── cursor-cli/   # cursor agent wrapper (batch); perspektivisch Cursor ACP (strukturiert, nicht hier)
-│       ├── claude-code/  # Claude Code runner (batch) + connector (streaming, CLI stream-json)
-│       ├── codex/        # Codex runner (batch) + connector (streaming: codex app-server bevorzugt)
-│       └── gemini/       # Gemini runner (batch) + connector (streaming: Headless/JSON)
+│       ├── cursor-cli/   # cursor agent wrapper (batch); perspektivisch Cursor ACP
+│       ├── claude-code/  # Batch runner + ClaudeCodeConnector (streaming, CLI stream-json)
+│       ├── codex/        # Batch runner + CodexConnector (streaming, codex app-server JSON-RPC)
+│       └── gemini/       # Batch runner + GeminiConnector (streaming, Headless/JSON)
 ├── PLAN.md           # Implementation roadmap
 └── README.md
 ```
@@ -60,4 +65,4 @@ patchbay/
 
 ## Current status
 
-Phases A–K complete. Phase L (Agent Connector Architecture) is the next milestone — introduces live agent interaction with streaming events, permission dialogs, and provider-agnostic connector interface. Includes monorepo consolidation (L5) merging wntrmte + patchbay into one repository. See `PLAN.md` Phase L for details.
+Phases A–K complete. Phase L (Agent Connector Architecture) in progress — L1–L4 done (core types, all provider connectors, orchestrator connector support, server streaming endpoints + dashboard API routes). Remaining: L5 (monorepo consolidation), L6 (dashboard Agent Chat UI), L7 (backward compatibility). See `PLAN.md` Phase L for details.

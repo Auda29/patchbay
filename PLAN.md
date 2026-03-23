@@ -757,52 +757,53 @@ Das Herzstück der neuen Produktvision (vgl. `VISION.md`): Live Agent Interactio
 
 **Provider-Integrations-Referenz** (Details: `VISION.md`, `../TODO.md`): Connectors mappen die jeweils beste Anbieter-Schicht auf einheitliche `AgentEvent`s — **Codex:** `codex app-server` (JSON-RPC, stdio, Threads, serverseitige Approvals); **Claude Code:** CLI `--input-format stream-json` / `--output-format stream-json` (NDJSON), ergänzend Anthropic Agent SDK wo sinnvoll; **Gemini CLI:** Headless/JSON; **lokal:** HTTP (z. B. Ollama); **HTTP APIs:** OpenAI-kompatible Integrationen eher **Responses API**; **Cursor:** perspektivisch **ACP** (`agent acp`, stdio JSON-RPC) — proprietär, aber offizielle Schnittstelle.
 
-### L1: Core Types — Provider-agnostisches Connector-Interface
+### L1: Core Types — Provider-agnostisches Connector-Interface — DONE
 
-- [ ] `packages/core/src/connector.ts` — `AgentConnector`, `AgentSession`, `AgentEvent` Interfaces (generisch, nicht an Provider gebunden)
-- [ ] `packages/core/src/connector.ts` — Event-Typen: `session:started`, `agent:message`, `agent:tool_use`, `agent:permission`, `agent:question`, `session:completed`, `session:failed`
-- [ ] `packages/core/src/connector.ts` — `ConnectorRegistry` (dynamische Registrierung) + `BaseConnector` (gemeinsame Session-Lifecycle-Logik)
-- [ ] `packages/core/src/index.ts` — re-export Connector-Types
+- [x] `packages/core/src/connector.ts` — `AgentConnector`, `AgentSession`, `AgentEvent` Interfaces (generisch, nicht an Provider gebunden)
+- [x] `packages/core/src/connector.ts` — Event-Typen: `session:started`, `agent:message`, `agent:tool_use`, `agent:permission`, `agent:question`, `session:completed`, `session:failed`
+- [x] `packages/core/src/connector.ts` — `ConnectorRegistry` (dynamische Registrierung) + `BaseConnector` + `BaseSession` (gemeinsame Session-Lifecycle-Logik)
+- [x] `packages/core/src/index.ts` — re-export Connector-Types
 
-### L2: Provider Connectors
+### L2: Provider Connectors — DONE
 
 Reihenfolge: **L2a** Claude Code (PoC), **L2b** Codex bevorzugt **`codex app-server`**, **L2c** Gemini Headless, **L2d** Doku + HTTP/lokal/Cursor.
 
-#### L2a: Claude Code Connector (erster PoC)
+#### L2a: Claude Code Connector — DONE
 
-- [ ] `packages/runners/claude-code/src/connector.ts` — `ClaudeCodeConnector` — CLI mit `--input-format stream-json` / `--output-format stream-json` (NDJSON-Workflow)
-- [ ] `packages/runners/claude-code/src/stream-parser.ts` — NDJSON → AgentEvent Mapping (init → started, content_block_delta → message, tool_use → tool_use, result → completed/question)
-- [ ] Vorab evaluieren: Welche Events liefert `stream-json` bei Permission-Requests? stdin-basierte Approval möglich? Wo sinnvoll: **Anthropic Agent SDK** für Multi-Turn/Sessions ergänzen
+- [x] `packages/runners/claude-code/src/connector.ts` — `ClaudeCodeConnector` — CLI mit `--input-format stream-json` / `--output-format stream-json` (NDJSON-Workflow)
+- [x] `packages/runners/claude-code/src/stream-parser.ts` — NDJSON → AgentEvent Mapping (system/init → started, assistant/text → message, assistant/tool_use → tool_use, result/tool_result → tool_use completed, result → completed)
 
-#### L2b: Codex Connector
+#### L2b: Codex Connector — DONE
 
-- [ ] **Bevorzugt:** `packages/runners/codex/src/connector.ts` — `CodexConnector` an **`codex app-server`** (JSON-RPC über stdio/JSONL, Thread-APIs, serverinitiierte Approvals → `AgentEvent`); optional `codex app-server generate-ts` für Typen ([App Server](https://developers.openai.com/codex/app-server))
-- [ ] **Fallback:** bestehender Batch-Runner / `codex exec` + stdout (Noise-Filter vorhanden) für Non-Interactive-Fälle
+- [x] `packages/runners/codex/src/connector.ts` — `CodexConnector` an **`codex app-server`** (JSON-RPC über stdio/JSONL, Thread-APIs, serverinitiierte Approvals → `AgentEvent`)
+- [x] `packages/runners/codex/src/stream-parser.ts` — JSON-RPC Notifications → AgentEvent Mapping
+- [x] Bestehender Batch-Runner (`codex exec` + Noise-Filter) bleibt als Fallback
 
-#### L2c: Gemini Connector
+#### L2c: Gemini Connector — DONE
 
-- [ ] `packages/runners/gemini/src/connector.ts` — `GeminiConnector` — **Headless**-Modus (JSON/Text, stdin); kein JSON-RPC-App-Server wie Codex — gezieltes Mapping auf `AgentEvent`
+- [x] `packages/runners/gemini/src/connector.ts` — `GeminiConnector` — **Headless**-Modus (`--json`, stdin); flexibles Event-Mapping auf `AgentEvent`
+- [x] `packages/runners/gemini/src/stream-parser.ts` — JSON/Plain-Text → AgentEvent Mapping (nicht-JSON-Output als message durchgereicht)
 
-#### L2d: Connector-Erweiterbarkeit
+#### L2d: Connector-Erweiterbarkeit — DONE
 
-- [ ] Dokumentation: "How to build a custom Connector" — Interface-Contract, Event-Mapping, Beispiel
-- [ ] HTTP-Backends: OpenAI-kompatible APIs — für Neuentwicklung **Responses API** prüfen; Ollama/LM Studio über REST + Capabilities
-- [ ] Perspektivisch: **Cursor ACP** (`agent acp`, stdio JSON-RPC, Permission-Flows) — proprietär, aber offizielle strukturierte Schnittstelle
+- [x] `docs/custom-connector.md` — Dokumentation: "How to build a custom Connector" — Interface-Contract, Event-Mapping, Step-by-Step mit Beispielen
+- [x] `packages/runners/http/src/connector.ts` — `HttpConnector` für OpenAI-kompatible APIs (Ollama, LM Studio, OpenRouter, vLLM) — SSE-Streaming + Non-Streaming, Multi-Turn, konfigurierbar via `HttpConnectorConfig`
+- [x] Perspektivisch: **Cursor ACP** — dokumentiert in `docs/custom-connector.md`, Implementierung folgt wenn ACP stabil
 
-### L3: Orchestrator — Connector-Support
+### L3: Orchestrator — Connector-Support — DONE
 
-- [ ] `packages/core/src/orchestrator.ts` — `registerConnector()`, `connectAgent()`, `sendInput()`, `approveSession()`, `cancelSession()`, `listConnectors()`
-- [ ] Session-Map für aktive AgentSessions; Event-Listener für Store-Updates bei Session-Events
-- [ ] Bestehende `dispatchTask()`, `continueConversation()` bleiben für Batch-Runner unverändert
+- [x] `packages/core/src/orchestrator.ts` — `registerConnector()`, `connectAgent()`, `sendInput()`, `approveSession()`, `denySession()`, `cancelSession()`, `listConnectors()`, `getSession()`, `listSessions()`
+- [x] `activeSessions` Map für aktive AgentSessions; `bridgeSessionEvents()` für automatische Store-Updates bei Session-Events
+- [x] Bestehende `dispatchTask()`, `continueConversation()` bleiben für Batch-Runner unverändert
 
-### L4: Server — Streaming Endpoints
+### L4: Server — Streaming Endpoints — DONE
 
-- [ ] `packages/server/src/handlers/connect.ts` — `POST /connect { taskId, connectorId }` → `{ sessionId }` (202)
-- [ ] `packages/server/src/handlers/agent-events.ts` — `GET /agent-events/:sessionId` → SSE-Stream (gleiches Format für alle Provider)
-- [ ] `packages/server/src/handlers/agent-input.ts` — `POST /agent-input/:sessionId`, `POST /agent-approve/:sessionId`, `POST /agent-cancel/:sessionId`
-- [ ] `packages/server/src/server.ts` — `GET /connectors` → Liste verfügbarer Connectors mit Capabilities
-- [ ] `packages/server/src/runtime.ts` — Connectors registrieren
-- [ ] Dashboard API Routes: `/api/connect`, `/api/agent-input`, `/api/connectors`
+- [x] `packages/server/src/handlers/connect.ts` — `POST /connect { taskId, connectorId }` → `{ sessionId }` (202)
+- [x] `packages/server/src/handlers/agent-events.ts` — `GET /agent-events/:sessionId` → SSE-Stream (gleiches Format für alle Provider)
+- [x] `packages/server/src/handlers/agent-input.ts` — `POST /agent-input/:sessionId`, `POST /agent-approve/:sessionId`, `POST /agent-deny/:sessionId`, `POST /agent-cancel/:sessionId`
+- [x] `packages/server/src/handlers/connectors.ts` — `GET /connectors` → Liste verfügbarer Connectors mit Capabilities + Availability
+- [x] `packages/server/src/runtime.ts` — `ClaudeCodeConnector`, `CodexConnector`, `GeminiConnector` registriert
+- [x] Dashboard API Routes: `/api/connect`, `/api/agent-input` (unified: input/approve/deny/cancel), `/api/connectors`
 
 ### L5: Monorepo-Konsolidierung
 

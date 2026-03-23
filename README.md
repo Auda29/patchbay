@@ -36,19 +36,21 @@ Patchbay is a monorepo with four package groups:
 ```
 patchbay/
 ├── schema/                        # JSON Schema definitions for .project-agents/
+├── docs/                          # Developer documentation
+│   └── custom-connector.md        #   How to build a custom Connector
 ├── packages/
-│   ├── core/                      # Orchestrator, Store, Runner interface, Types
+│   ├── core/                      # Orchestrator, Store, Runner + Connector interfaces, Types
 │   ├── cli/                       # CLI tool (patchbay init, task, run, status, serve)
 │   ├── dashboard/                 # Next.js web dashboard
 │   ├── server/                    # Standalone HTTP server (@patchbay/server)
-│   └── runners/                   # Runner adapters
-│       ├── bash/                  #   Shell command execution
-│       ├── http/                  #   HTTP/API requests
+│   └── runners/                   # Runner adapters + Connectors
+│       ├── bash/                  #   Shell command execution (batch)
+│       ├── http/                  #   HTTP/API requests (batch) + HttpConnector (OpenAI-compatible)
 │       ├── cursor/                #   Cursor file-based (manual handoff)
 │       ├── cursor-cli/            #   Cursor headless (cursor agent -p)
-│       ├── claude-code/           #   Claude Code CLI (claude -p)
-│       ├── codex/                 #   OpenAI Codex CLI (codex exec)
-│       └── gemini/                #   Google Gemini CLI (gemini -p)
+│       ├── claude-code/           #   Batch runner + ClaudeCodeConnector (stream-json)
+│       ├── codex/                 #   Batch runner + CodexConnector (app-server JSON-RPC)
+│       └── gemini/                #   Batch runner + GeminiConnector (headless/JSON)
 └── package.json                   # npm workspaces root
 ```
 
@@ -76,8 +78,11 @@ patchbay/
 
 **`@patchbay/core`** — the orchestration engine:
 - `Store` — file-based state management with AJV schema validation
-- `Orchestrator` — task state transitions, runner dispatch, result collection
-- `Runner` interface — minimal contract (`execute(input) → output`) that all adapters implement
+- `Orchestrator` — task state transitions, runner dispatch, connector sessions, result collection
+- `Runner` interface — minimal contract (`execute(input) → output`) for batch runners
+- `AgentConnector` interface — event-based, session-oriented contract (`connect(input) → AgentSession`) for live streaming interaction
+- `ConnectorRegistry` — dynamic registration and lookup of connectors
+- `BaseSession` / `BaseConnector` — shared lifecycle logic for connector implementations
 
 **`@patchbay/cli`** — command-line interface:
 - `patchbay init` — project setup (interactive or `--yes` for non-interactive), creates `.project-agents/` structure
@@ -97,7 +102,7 @@ patchbay/
 - History page — all past runs sorted newest-first with status, runner, and duration
 - Interactive dispatch: select a task and runner; returns immediately (HTTP 202) — no waiting for the runner to finish
 
-**Runners:**
+**Runners (batch):**
 
 | Runner | How it works |
 |--------|-------------|
@@ -108,6 +113,17 @@ patchbay/
 | **Claude Code** | Runs `claude -p <prompt>` with project context |
 | **Codex** | Runs `codex exec <prompt>` with project context |
 | **Gemini** | Runs `gemini -p <prompt>` with project context |
+
+**Connectors (streaming):**
+
+| Connector | Protocol | Capabilities |
+|-----------|----------|-------------|
+| **ClaudeCodeConnector** | CLI `--input/output-format stream-json` (NDJSON) | Streaming, Permissions, Multi-Turn, Tool Use |
+| **CodexConnector** | `codex app-server` (JSON-RPC over stdio) | Streaming, Permissions, Multi-Turn, Tool Use |
+| **GeminiConnector** | Headless mode (`--json`, stdin) | Streaming, Multi-Turn, Tool Use |
+| **HttpConnector** | OpenAI-compatible `POST /chat/completions` (SSE) | Streaming, Multi-Turn |
+
+See [docs/custom-connector.md](docs/custom-connector.md) for how to build your own connector.
 
 ### API
 
@@ -125,6 +141,9 @@ The dashboard exposes REST endpoints (Next.js API routes):
 | `/api/decisions` | POST | Create a technical decision |
 | `/api/artifacts` | GET | List context files and diff references |
 | `/api/events` | GET | SSE stream — real-time change notifications |
+| `/api/connectors` | GET | List available streaming connectors with capabilities |
+| `/api/connect` | POST | Start a live agent session (returns `sessionId`) |
+| `/api/agent-input` | POST | Send input/approve/deny/cancel to an active session |
 
 ## Quickstart
 
@@ -226,6 +245,14 @@ Patchbay thinks from the outside in (external dashboard). Wintermute thinks from
 - [x] Phase J: Multi-turn runner conversations — `awaiting_input` status, `continueConversation()` in Orchestrator, `--resume` session in claude-code runner, `patchbay reply` CLI command, reply UX in Wintermute (InputBox) and Dashboard (DispatchDialog reply mode, "Awaiting Reply" Kanban column), `/api/reply` endpoint
 - [x] Post-J: Task IDs as readable slugs (`my-task-abc123`), Codex noise filtering + summary extraction, Codex `--full-auto` flag, DispatchDialog agent sorting + dynamic menu placement
 - [x] Phase K: Project import — `patchbay init` auto-detects project name/tech-stack from `package.json`/`pyproject.toml`/`Cargo.toml`/`go.mod`, bootstraps `context/architecture.md` from README and `context/conventions.md` from CI config
+- [ ] Phase L: Agent Connector Architecture — live agent interaction with streaming events, permission dialogs, and provider-agnostic connector interface
+  - [x] L1: Core types (`AgentConnector`, `AgentSession`, `AgentEvent`, `ConnectorRegistry`, `BaseSession`)
+  - [x] L2: Provider connectors (Claude Code, Codex, Gemini, HTTP/OpenAI-compatible) + extensibility docs
+  - [x] L3: Orchestrator connector support (`connectAgent`, `sendInput`, `approveSession`, `cancelSession`)
+  - [x] L4: Server streaming endpoints (`/connect`, `/agent-events/:id` SSE, `/agent-input/:id`, `/connectors`) + Dashboard API routes
+  - [ ] L5: Monorepo consolidation (merge wntrmte + patchbay)
+  - [ ] L6: Dashboard Agent Chat UI (streaming messages, tool use, permissions, inline replies)
+  - [ ] L7: Backward compatibility (batch runner fallback, `/agents` enrichment)
 
 See [PLAN.md](PLAN.md) for the detailed technical roadmap.
 
