@@ -755,7 +755,7 @@ Das Herzstück der neuen Produktvision (vgl. `VISION.md`): Live Agent Interactio
 
 **Strategie:** Das Patchbay Dashboard ist die primäre App-UI. Wintermute bettet es als Webview-Panel ein — Agent Chat, Streaming, Approvals laufen im Dashboard und sind automatisch in Wintermute verfügbar.
 
-**Provider-Integrations-Referenz** (Details: `VISION.md`, `../TODO.md`): Connectors mappen die jeweils beste Anbieter-Schicht auf einheitliche `AgentEvent`s — **Codex:** `codex app-server` (JSON-RPC, stdio, Threads, serverseitige Approvals); **Claude Code:** CLI `--input-format stream-json` / `--output-format stream-json` (NDJSON), ergänzend Anthropic Agent SDK wo sinnvoll; **Gemini CLI:** Headless/JSON; **lokal:** HTTP (z. B. Ollama); **HTTP APIs:** OpenAI-kompatible Integrationen eher **Responses API**; **Cursor:** perspektivisch **ACP** (`agent acp`, stdio JSON-RPC) — proprietär, aber offizielle Schnittstelle.
+**Provider-Integrations-Referenz** (Details: `VISION.md`, `../TODO.md`): Connectors mappen die jeweils beste Anbieter-Schicht auf einheitliche `AgentEvent`s — **Codex:** `codex app-server` (JSON-RPC, stdio, Threads, serverseitige Approvals); **Claude Code:** CLI `--input-format stream-json` / `--output-format stream-json` (NDJSON), ergänzend Anthropic Agent SDK wo sinnvoll; **Gemini CLI:** Headless/JSON; **lokal:** HTTP (z. B. Ollama); **HTTP APIs:** OpenAI-kompatible Integrationen eher **Responses API**; **Cursor / ACP:** **`CursorAcpConnector`** bzw. generischer **`AcpConnector`** — [Agent Client Protocol](https://agentclientprotocol.com) (JSON-RPC/stdio, `cursor agent acp`); siehe `docs/custom-connector.md` § ACP.
 
 ### L1: Core Types — Provider-agnostisches Connector-Interface — DONE
 
@@ -804,7 +804,7 @@ Reihenfolge: **L2a** Claude Code (PoC), **L2b** Codex bevorzugt **`codex app-ser
 - [x] `packages/server/src/handlers/agent-events.ts` — `GET /agent-events/:sessionId` → SSE-Stream (gleiches Format für alle Provider)
 - [x] `packages/server/src/handlers/agent-input.ts` — `POST /agent-input/:sessionId`, `POST /agent-approve/:sessionId`, `POST /agent-deny/:sessionId`, `POST /agent-cancel/:sessionId`
 - [x] `packages/server/src/handlers/connectors.ts` — `GET /connectors` → Liste verfügbarer Connectors mit Capabilities + Availability
-- [x] `packages/server/src/runtime.ts` — `ClaudeCodeConnector`, `CodexConnector`, `GeminiConnector` registriert
+- [x] `packages/server/src/runtime.ts` — `ClaudeCodeConnector`, `CodexConnector`, `GeminiConnector`, `CursorAcpConnector` registriert
 - [x] Dashboard API Routes: `/api/connect`, `/api/agent-input` (unified: input/approve/deny/cancel), `/api/connectors`
 
 ### L5: Monorepo-Konsolidierung

@@ -55,7 +55,7 @@ patchbay/
 
 **Batch Runner** — `execute(): Promise<RunnerOutput>`. Fire-and-forget. For bash, http, cursor, simple one-shot tasks.
 
-**Agent Connector** — `connect(): AgentSession`. Event-based, session-oriented. Streams messages, handles permissions, accepts replies in a live session. Implementations differ per vendor (e.g. Claude Code stream-json, **Codex `app-server`** JSON-RPC, Gemini Headless, HTTP for local routers). Provider-agnostic: the `AgentConnector` interface is generic; each provider maps its best available layer. See `../VISION.md` (Provider-Schichten).
+**Agent Connector** — `connect(): AgentSession`. Event-based, session-oriented. Streams messages, handles permissions, accepts replies in a live session. Implementations differ per vendor (e.g. Claude Code stream-json, **Codex `app-server`** JSON-RPC, Gemini Headless, **Cursor `CursorAcpConnector` / generic `AcpConnector`** for [ACP](https://agentclientprotocol.com), HTTP for local routers). Provider-agnostic: the `AgentConnector` interface is generic; each provider maps its best available layer. See `../VISION.md` (Provider-Schichten) and `docs/custom-connector.md` (ACP section).
 
 ## Principles
 
@@ -66,4 +66,4 @@ patchbay/
 
 ## Current status
 
-Phases A–K complete. Phase L in progress — **L1–L4 done** (core types, Claude/Codex/Gemini/`HttpConnector`, orchestrator incl. approve/deny, server + dashboard API routes, `docs/custom-connector.md`). **Remaining:** L5 (monorepo), L6 (Agent Chat UI + Wintermute relay with `denyAgent`), L7 (`/agents` capabilities). See `PLAN.md` Phase L.
+Phases A–K complete. Phase L in progress — **L1–L4 done** (core types, Claude/Codex/Gemini/`HttpConnector`/`CursorAcpConnector` + `AcpConnector`, orchestrator incl. approve/deny, server + dashboard API routes, `docs/custom-connector.md` incl. ACP mapping). **Remaining:** L5 (monorepo), L6 (Agent Chat UI + Wintermute relay with `denyAgent`), L7 (`/agents` capabilities). See `PLAN.md` Phase L.
