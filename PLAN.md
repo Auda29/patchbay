@@ -813,7 +813,7 @@ Vor dem Dashboard-Umbau: wntrmte + patchbay in ein Repository zusammenführen. A
 
 - [ ] Monorepo-Struktur: `packages/` (core, dashboard, cli, server, runners) + `ide/` (build, extensions, patches)
 - [ ] Shared Types: duplizierte Interfaces durch Imports aus `@patchbay/core` ersetzen
-- [ ] `extension.ts` aufteilen: `CliManager`, `AuthService`, `TerminalOrchestrator` extrahieren
+- [x] Wintermute `extension.ts` aufgeteilt — `CliManager`, `AuthService`, `TerminalOrchestrator` unter `extensions/wntrmte-workflow/src/services/` (Merge der Repos steht weiterhin aus)
 
 ### L6: Dashboard — Agent Chat
 

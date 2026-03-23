@@ -251,7 +251,7 @@ Patchbay thinks from the outside in (external dashboard). Wintermute thinks from
   - [x] L2: Provider connectors (Claude Code, Codex, Gemini, HTTP/OpenAI-compatible) + extensibility docs
   - [x] L3: Orchestrator connector support (`connectAgent`, `sendInput`, `approveSession`, `cancelSession`)
   - [x] L4: Server streaming endpoints (`/connect`, `/agent-events/:id` SSE, `/agent-input/:id`, `/connectors`) + Dashboard API routes
-  - [ ] L5: Monorepo consolidation (merge wntrmte + patchbay)
+  - [ ] L5: Monorepo consolidation (merge wntrmte + patchbay, shared types from `@patchbay/core`; Wintermute `extension.ts` split into `CliManager` / `AuthService` / `TerminalOrchestrator` is already done)
   - [ ] L6: Dashboard Agent Chat UI (streaming messages, tool use, permissions, inline replies)
   - [ ] L7: Backward compatibility (batch runner fallback, `/agents` enrichment)
 
